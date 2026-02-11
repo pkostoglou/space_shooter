@@ -1,4 +1,4 @@
-import Element from "./Element.ts"
+import Element from "./Element.js"
 
 const PLAYER_FIRERATE_BASELINE = 150
 

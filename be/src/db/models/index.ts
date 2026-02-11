@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import config from "../../config/index.ts";
+import config from "../../config/index.js";
 
 const MONGO_URI = config.mongoURI//'mongodb://user:pass@localhost:27017/db?authSource=admin';
 mongoose.connect(MONGO_URI).then(() => console.log("Connected to Mongo!")).catch((err) => console.log("Lol nope :", err))

@@ -1,8 +1,7 @@
 import type { Position, Size } from "../../domains/gameTypes.js"
-import Element from "./Element.ts"
-import Player from "./Player.ts"
-import Projectile from "./Projectile.ts"
-import Meteor from "./Metero.ts"
+import Player from "./Player.js"
+import Projectile from "./Projectile.js"
+import Meteor from "./Metero.js"
 
 class GameState {
     private projectiles: Projectile[]

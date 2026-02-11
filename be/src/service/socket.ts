@@ -1,5 +1,5 @@
 import type { WebSocket, WebSocketServer } from "ws";
-import GameState from "./GameState/GameState.ts";
+import GameState from "./GameState/GameState.js";
 import type { Position } from "../domains/gameTypes.js";
 import { randomUUID } from "node:crypto";
 import type { UUID } from "node:crypto";

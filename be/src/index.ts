@@ -2,10 +2,10 @@ import express from 'express'
 import { WebSocketServer } from 'ws'
 import { createServer } from 'http'
 import cors from 'cors'
-import initSocket from './src/service/socket.ts'
-import db from './src/db/index.ts'
-import { addRoutes } from './src/routes/index.ts'
-import config from './src/config/index.ts'
+import initSocket from './service/socket.js'
+import db from './db/index.js'
+import { addRoutes } from './routes/index.js'
+import config from './config/index.js'
 
 const app = express()
 const port = config.port

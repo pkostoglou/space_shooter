@@ -1,4 +1,4 @@
-import PassiveElement from "./PassiveElement.ts";
+import PassiveElement from "./PassiveElement.js";
 import type { Position } from "../../domains/gameTypes.js";
 
 class Meteor extends PassiveElement{

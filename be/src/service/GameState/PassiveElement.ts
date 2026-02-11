@@ -1,5 +1,5 @@
 import type { Position, Size } from "../../domains/gameTypes.js";
-import Element from "./Element.ts";
+import Element from "./Element.js";
 
 class PassiveElement extends Element {
     protected a: number

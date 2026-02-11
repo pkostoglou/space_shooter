@@ -1,5 +1,5 @@
 import type { Position } from "../../domains/gameTypes.js"
-import PassiveElement from "./PassiveElement.ts"
+import PassiveElement from "./PassiveElement.js"
 
 class Projectile extends PassiveElement {
     private sourceId: number

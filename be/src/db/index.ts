@@ -1,4 +1,4 @@
-import { Game } from "./models/index.ts";
+import { Game } from "./models/index.js";
 
 const db = {
     game: Game
