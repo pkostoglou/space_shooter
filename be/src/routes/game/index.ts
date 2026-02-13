@@ -12,8 +12,11 @@ const gameRoutes = (app: Express, db: any) => {
             score
         })
         await game.save()
+        // Count how many scores are higher than this one
+        const rank = await db.game.countDocuments({ score: { $gt: score } }) + 1
         res.json({
-            message: "Game saved succesfully!"
+            message: "Game saved succesfully!",
+            rank
         })
     })
 
@@ -27,4 +30,4 @@ const gameRoutes = (app: Express, db: any) => {
     })
 }
 
-export {gameRoutes}
+export { gameRoutes }
