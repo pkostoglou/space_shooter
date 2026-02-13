@@ -202,7 +202,7 @@ export default function App() {
       <ScoreModal
         isOpen={isScoreModalOpen}
         score={score}
-        onSave={(name: string) => addScore(score, name)}
+        onSave={async(name: string) =>{ return await addScore(score, name)}}
         onRestart={() => { wsRef.current?.send(JSON.stringify({ type: "restart" })); setIsScoreModalOpen(false); setScore(0) }}
       />
     </>

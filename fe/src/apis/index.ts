@@ -22,8 +22,8 @@ const addScore = async (score: number, name: string) => {
         }
         )
         if (!response.ok) throw new Error("Err")
-        const message = await response.json()
-        return message
+        const resp = await response.json()
+        return resp.rank
     } catch (e) {
         console.log(e)
     }
