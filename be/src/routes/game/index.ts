@@ -1,6 +1,16 @@
 import type { Express } from "express"
+import { randomUUID } from "node:crypto";
+import type { TGameManager } from "../../domains/gameTypes.js";
 
-const gameRoutes = (app: Express, db: any) => {
+const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
+    app.get('/game/double', async (req, res) => {
+        try {
+            const availableGames = gameStateManager.getAvailableGames()
+            res.status(200).json({ availableGames })
+        } catch (e) {
+
+        }
+    })
     app.post('/game', async (req, res) => {
         const {
             name,
@@ -26,6 +36,74 @@ const gameRoutes = (app: Express, db: any) => {
             res.json(games)
         } catch (e) {
             res.status(500).json({ error: "Cant" })
+        }
+    })
+
+    app.post('/game/single', async (req, res) => {
+        try {
+            const userID = randomUUID()
+            const gameID = gameStateManager.createNewSingleGame(userID)
+            res.cookie('userID', userID, {
+                httpOnly: true,
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24
+            })
+
+            res.cookie('gameID', gameID, {
+                httpOnly: true,
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24
+            })
+
+            res.status(200).json({ message: "Game created successfully" })
+        } catch (e) {
+
+        }
+    })
+
+    app.post('/game/double', async (req, res) => {
+        try {
+            const userID = randomUUID()
+            const gameID = gameStateManager.createNewDoubleGame(userID)
+            res.cookie('userID', userID, {
+                httpOnly: true,
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24
+            })
+
+            res.cookie('gameID', gameID, {
+                httpOnly: true,
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24
+            })
+
+            res.status(200).json({ message: "Game created successfully" })
+        } catch (e) {
+
+        }
+    })
+
+    app.post('/game/join', async (req, res) => {
+        try {
+            const userID = randomUUID()
+            const gameID = req.body.gameID
+            const success = gameStateManager.joinGame(userID, gameID)
+            if (!success) res.status(404).json({ message: "Game not found" })
+            res.cookie('userID', userID, {
+                httpOnly: true,
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24
+            })
+
+            res.cookie('gameID', gameID, {
+                httpOnly: true,
+                secure: false,
+                maxAge: 1000 * 60 * 60 * 24
+            })
+
+            res.status(200).json({ message: "Game created successfully" })
+        } catch (e) {
+
         }
     })
 }

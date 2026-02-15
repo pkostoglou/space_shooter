@@ -1,41 +1,17 @@
 import { formatDate } from "../utils/dates";
+import { ReactNode, useEffect, useState } from "react";
+import Table from "./basics/Table";
 
 const Leaderboard = ({
     leaderboard
-}:{
-    leaderboard:any[]
+}: {
+    leaderboard: any[]
 }) => {
+    const [transformedLeaderboard, setTransformedLeaderboard] = useState<ReactNode[][]>([])
     const tableWrapperStyle: React.CSSProperties = {
         overflow: 'auto',
         boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
         borderRadius: '8px',
-    };
-
-    const tableStyle: React.CSSProperties = {
-        width: '100%',
-        backgroundColor: 'white',
-        borderCollapse: 'collapse',
-    };
-
-    const theadStyle: React.CSSProperties = {
-        background: '#3b82f6',
-        color: 'white',
-    };
-
-    const thStyle: React.CSSProperties = {
-        padding: '16px 24px',
-        textAlign: 'left',
-        fontWeight: '600',
-    };
-
-    const getRowStyle = (): React.CSSProperties => ({
-        borderBottom: '1px solid #e5e7eb',
-        backgroundColor: 'white',
-        transition: 'background-color 0.2s',
-    });
-
-    const tdStyle: React.CSSProperties = {
-        padding: '16px 24px',
     };
 
     const getRankStyle = (index: number): React.CSSProperties => ({
@@ -43,11 +19,6 @@ const Leaderboard = ({
         fontSize: '18px',
         color: index === 0 ? '#eab308' : index === 1 ? '#9ca3af' : index === 2 ? '#ea580c' : '#000',
     });
-
-    const nameStyle: React.CSSProperties = {
-        fontWeight: '500',
-        color: '#1f2937',
-    };
 
     const scoreStyle: React.CSSProperties = {
         backgroundColor: '#dbeafe',
@@ -58,54 +29,41 @@ const Leaderboard = ({
         display: 'inline-block',
     };
 
-    const dateStyle: React.CSSProperties = {
-        color: '#6b7280',
-    };
+    useEffect(() => {
+        const finalLeaderboard: ReactNode[][] = []
+        for (let i = 0; i < leaderboard.length && i<10; i++) {
+            const currentRow = leaderboard[i]
+            const currentTransformedRow: ReactNode[] = []
+            currentTransformedRow.push(
+                <span style={getRankStyle(i)}>
+                    {i === 0 && '🥇'}
+                    {i === 1 && '🥈'}
+                    {i === 2 && '🥉'}
+                    {i > 2 && `#${i + 1}`}
+                </span>
+            )
+            currentTransformedRow.push(
+                <span>{currentRow.name}</span>
+            )
+            currentTransformedRow.push(
+                <span style={scoreStyle}>
+                    {currentRow.score.toLocaleString()}
+                </span>
+            )
+            currentTransformedRow.push(
+                <span> {formatDate(currentRow.createdAt)}</span>
+            )
+            finalLeaderboard.push(currentTransformedRow)
+        }
+        setTransformedLeaderboard(finalLeaderboard)
+    }, [leaderboard])
+
     return (
         <div style={tableWrapperStyle}>
-            <table style={tableStyle}>
-                <thead style={theadStyle}>
-                    <tr>
-                        <th style={thStyle}>
-
-                            <span>Rank</span>
-                        </th>
-                        <th style={thStyle}>Name</th>
-                        <th style={thStyle}>Score</th>
-                        <th style={thStyle}>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {leaderboard.slice(0, 10)
-                        .sort((a, b) => b.score - a.score)
-                        .map((player, index) => (
-                            <tr
-                                key={index}
-                                style={getRowStyle()}
-                            >
-                                <td style={tdStyle}>
-                                    <span style={getRankStyle(index)}>
-                                        {index === 0 && '🥇'}
-                                        {index === 1 && '🥈'}
-                                        {index === 2 && '🥉'}
-                                        {index > 2 && `#${index + 1}`}
-                                    </span>
-                                </td>
-                                <td style={{ ...tdStyle, ...nameStyle }}>
-                                    {player.name}
-                                </td>
-                                <td style={tdStyle}>
-                                    <span style={scoreStyle}>
-                                        {player.score.toLocaleString()}
-                                    </span>
-                                </td>
-                                <td style={{ ...tdStyle, ...dateStyle }}>
-                                    {formatDate(player.createdAt)}
-                                </td>
-                            </tr>
-                        ))}
-                </tbody>
-            </table>
+            <Table
+                headers={["Rank","Name","Score","Date"]}
+                data={transformedLeaderboard}
+            />
         </div>
     )
 }

@@ -10,8 +10,8 @@ class Meteor extends PassiveElement{
         this.objectAngle = 45
     }
 
-    public passiveMovement(): void {
-        super.passiveMovement()
+    public passiveMovement(deltaTime: number): void {
+        super.passiveMovement(deltaTime)
         this.objectAngle += 1
     }
 }

@@ -23,8 +23,8 @@ class PassiveElement extends Element {
         this.speed = 4
     }
 
-    public passiveMovement() {
-        this.currentPosition.x += this.speed * Math.cos(this.angle) * this.direction
+    public passiveMovement(deltaTime: number) {
+        this.currentPosition.x += this.speed * (deltaTime / 16) * Math.cos(this.angle) * this.direction
         this.currentPosition.y = this.a * this.currentPosition.x + this.b
     }
 }

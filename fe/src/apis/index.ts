@@ -1,4 +1,4 @@
-const baseUrl =  import.meta.env.VITE_BASE_URL
+const baseUrl = import.meta.env.VITE_BASE_URL
 
 const getScores = async () => {
     try {
@@ -18,6 +18,7 @@ const addScore = async (score: number, name: string) => {
             headers: {
                 "Content-Type": "application/json"
             },
+            credentials: 'include',
             body: JSON.stringify({ score, name })
         }
         )
@@ -29,7 +30,61 @@ const addScore = async (score: number, name: string) => {
     }
 }
 
+const createSingleGame = async () => {
+    try {
+        await fetch(`${baseUrl}/game/single`, {
+            method: "POST",
+            credentials: 'include',
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+const createDoubleGame = async () => {
+    try {
+        await fetch(`${baseUrl}/game/double`, {
+            method: "POST",
+            credentials: 'include',
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+const joinGame = async (gameID: string) => {
+    try {
+        await fetch(`${baseUrl}/game/join`, {
+            method: "POST",
+            credentials: 'include',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({gameID })
+        })
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+const getAvailableGames = async (): Promise<string[]> => {
+    try {
+        const response = await fetch(`${baseUrl}/game/double`, {
+            method: "GET",
+        })
+        const games = await response.json()
+        return games.availableGames as string[]
+    } catch (e) {
+        console.log(e)
+        return []
+    }
+}
+
 export {
     getScores,
-    addScore
+    addScore,
+    createSingleGame,
+    createDoubleGame,
+    joinGame,
+    getAvailableGames
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getScores } from '../apis';
 import Leaderboard from './Leaderboard';
+import Modal from './basics/Modal';
 
 const ScoreModal = ({
   isOpen,
@@ -25,7 +26,6 @@ const ScoreModal = ({
     margin: '0 auto',
     padding: '24px',
   };
-  if (!isOpen) return null;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userIsAbleToSave) return
@@ -52,18 +52,7 @@ const ScoreModal = ({
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 1000,
-    }}>
+    <Modal isOpen={isOpen}>
       {currentView == "actions" ?
         <div style={{
           backgroundColor: 'white',
@@ -225,7 +214,7 @@ const ScoreModal = ({
           <Leaderboard leaderboard={leaderboard} />
         </div>
       }
-    </div>
+    </Modal>
   );
 };
 

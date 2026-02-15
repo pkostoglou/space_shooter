@@ -2,21 +2,30 @@ import type { Position, Size } from "../../domains/gameTypes.js"
 import Player from "./Player.js"
 import Projectile from "./Projectile.js"
 import Meteor from "./Metero.js"
+import type { UUID } from "node:crypto"
 
 class GameState {
     private projectiles: Projectile[]
     private meteors: Meteor[]
-    private players: Player
+    private players: {
+        [key: UUID]: {
+            targetPosition: Position | null,
+            player: Player
+        }
+    }
     private gameId: number
     private isGameActive: boolean
     private score: number
     private windowSize: Size
-    private targetPosition: Position | null
 
-    constructor() {
+    constructor(playerID: UUID) {
         this.gameId = 1
         this.projectiles = []
-        this.players = new Player();
+        this.players = {}
+        this.players[playerID] = {
+            player: new Player({ x: 450, y: 450 }),
+            targetPosition: null
+        }
         this.meteors = []
         this.isGameActive = true
         this.score = 0
@@ -24,10 +33,9 @@ class GameState {
             width: 1400,
             height: 900
         }
-        this.targetPosition = null
     }
 
-    private handleCollisions(){
+    private handleCollisions() {
         const meteorsToRemove: number[] = []
         const projectilesToRemove: number[] = []
 
@@ -46,9 +54,12 @@ class GameState {
                 }
             }
             // Check player with meteor collision
-            if (currentMeteor.detectCollisionWithElement(this.players)) {
-                this.isGameActive = false
+            for (const [key, value] of Object.entries(this.players)) {
+                if (currentMeteor.detectCollisionWithElement(value.player)) {
+                    this.isGameActive = false
+                }
             }
+
         }
         if (meteorsToRemove.length > 0) {
             this.meteors = this.meteors.filter((_, i) => !meteorsToRemove.includes(i))
@@ -58,26 +69,26 @@ class GameState {
         }
     }
 
-    public movePlayer(movement: { horizontal: number, vertical: number }) {
+    public movePlayer(playerID: UUID, movement: { horizontal: number, vertical: number }, deltaTime: number) {
         if (!this.isGameActive) return
-        this.players.move(movement)
+        this.players[playerID]?.player.move(movement, deltaTime)
     }
 
-    public setTargetPosition(targetPosition: Position) {
-        this.targetPosition = targetPosition
+    public setTargetPosition(playerID: UUID, targetPosition: Position) {
+        if (this.players[playerID]) this.players[playerID].targetPosition = targetPosition
     }
 
-    public Tick() {
+    public Tick(deltaTime: number) {
         if (!this.isGameActive) return
 
         //Move projectiles
         this.projectiles.forEach(projectile => {
-            projectile.passiveMovement()
+            projectile.passiveMovement(deltaTime)
         });
 
         // Move meteors
         this.meteors.forEach(meteor => {
-            meteor.passiveMovement()
+            meteor.passiveMovement(deltaTime)
         });
 
         this.handleCollisions()
@@ -138,26 +149,38 @@ class GameState {
         }
 
         // Create new projectile
-        if (this.players.canShoot() && this.targetPosition) {
-            this.players.resetShootCountdown()
-            const newProjectile = new Projectile(1, this.players.getInfo().position, this.targetPosition)
-            this.projectiles.push(newProjectile)
+        for (const [key, value] of Object.entries(this.players)) {
+            const player = value.player
+            if (player.canShoot() && value.targetPosition) {
+                player.resetShootCountdown()
+                const newProjectile = new Projectile(1, player.getInfo().position, value.targetPosition)
+                this.projectiles.push(newProjectile)
+            }
         }
+
     }
 
-    public playerIsShooting() {
-        this.players.shootCountdown()
+    public playerIsShooting(playerID: UUID, deltaTime: number) {
+        if (this.players[playerID]) this.players[playerID].player.shootCountdown(deltaTime)
     }
 
-    public playerIsNotShooting() {
-        this.players.resetShootCountdown()
+    public playerIsNotShooting(playerID: UUID) {
+        if (this.players[playerID]) this.players[playerID].player.resetShootCountdown()
+
     }
 
     public getGameInfo() {
+
+        const playersInfo = []
+
+        for (const [key, value] of Object.entries(this.players)) {
+            playersInfo.push(value.player.getInfo())
+        }
+
         return JSON.stringify({
             projectiles: this.projectiles,
             meteors: this.meteors,
-            player: this.players.getInfo(),
+            player: playersInfo,
             isGameActive: this.isGameActive,
             score: this.score
         })
@@ -170,6 +193,13 @@ class GameState {
 
     public getGameId(): number {
         return this.gameId
+    }
+
+    public addPlayer(playerID: UUID): void {
+        this.players[playerID] = {
+            player: new Player({ x: 850, y: 450 }),
+            targetPosition: null
+        }
     }
 }
 

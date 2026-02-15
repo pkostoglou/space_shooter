@@ -1,11 +1,11 @@
 import { Application, extend } from "@pixi/react";
 import { Container, Sprite, Text } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
-import Player from "./Elements/Player";
-import Projectile from "./Elements/Projectile";
-import Meteor from "./Elements/Meteor";
-import ScoreModal from "./components/ScoreModal";
-import { addScore, getScores } from "./apis";
+import Player from "../Elements/Player";
+import Projectile from "../Elements/Projectile";
+import Meteor from "../Elements/Meteor";
+import ScoreModal from "../components/ScoreModal";
+import { addScore, getScores } from "../apis";
 
 // extend tells @pixi/react what Pixi.js components are available
 extend({
@@ -14,9 +14,14 @@ extend({
   Text
 });
 
-export default function App() {
+export default function Game({
+  mode
+}:{
+  mode: 'single' | 'double'
+}) {
   const mouseIsBeingPressed = useRef(false)
   const mainPlayerRef = useRef<Sprite>(null)
+  const secondPlayerRef = useRef<Sprite>(null)
   const mousePosition = useRef<{ x: number, y: number }>({ x: 0, y: 0 })
   const [projectiles, setProjectiles] = useState<{ position: { x: number, y: number }, size: { width: number, height: number }, angle: number }[]>([])
   const [meteors, setMeteors] = useState<{ position: { x: number, y: number }, size: { width: number, height: number }, angle: number }[]>([])
@@ -25,6 +30,7 @@ export default function App() {
   const [score, setScore] = useState(0)
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false)
   const [playerRotation, setPlayerRotation] = useState(-1*Math.PI)
+  const [secondPlayerRotation, setSecondPlayerRotation] = useState(-1*Math.PI)
 
   const keyDown = (e: KeyboardEvent) => {
     pressedKeysRef.current[e.key] = true
@@ -84,7 +90,7 @@ export default function App() {
     canvas.addEventListener("mousemove", getMousePosition);
 
     const wsUrl = import.meta.env.VITE_WS_BASE_URL ?? 'ws://localhost:8000'
-    const ws = new WebSocket(wsUrl);
+    const ws = new WebSocket(`${wsUrl}?mode=single`);
 
     ws.onopen = () => {
       console.log('Connected to server');
@@ -94,8 +100,12 @@ export default function App() {
       const data = JSON.parse(event.data);
       if (!mainPlayerRef.current) return
       if (data.player) {
-        mainPlayerRef.current?.position.set(data.player.position.x, data.player.position.y)
-        setPlayerRotation(data.player.angle)
+        mainPlayerRef.current?.position.set(data.player[0].position.x, data.player[0].position.y)
+        if(data.player.length>1) {
+          secondPlayerRef.current?.position.set(data.player[1].position.x, data.player[1].position.y)
+          setSecondPlayerRotation(data.player[1].angle)
+        }
+        setPlayerRotation(data.player[0].angle)
       }
       if (data.projectiles) {
         const newProjectiles = data.projectiles.map((projectile: any) => {
@@ -169,6 +179,7 @@ export default function App() {
   return (
     <><Application background={"#1099bb"} width={1400} height={900}>
       <Player spriteRef={mainPlayerRef} angle={playerRotation}/>
+      {mode=='double' && <Player spriteRef={secondPlayerRef} angle={secondPlayerRotation}/>}
       <pixiContainer>
         <pixiText
           text={`Score ${score}`}
