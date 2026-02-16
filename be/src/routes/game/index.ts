@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { TGameManager } from "../../domains/gameTypes.js";
 
 const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
-    app.get('/game/double', async (req, res) => {
+    app.get('/api/game/double', async (req, res) => {
         try {
             const availableGames = gameStateManager.getAvailableGames()
             res.status(200).json({ availableGames })
@@ -11,7 +11,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
 
         }
     })
-    app.post('/game', async (req, res) => {
+    app.post('/api/game', async (req, res) => {
         const {
             name,
             score
@@ -30,7 +30,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
         })
     })
 
-    app.get('/game', async (req, res) => {
+    app.get('/api/game', async (req, res) => {
         try {
             const games = await db.game.find().sort({ score: -1 }).limit(20)
             res.json(games)
@@ -39,7 +39,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
         }
     })
 
-    app.post('/game/single', async (req, res) => {
+    app.post('/api/game/single', async (req, res) => {
         try {
             const userID = randomUUID()
             const gameID = gameStateManager.createNewSingleGame(userID)
@@ -61,7 +61,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
         }
     })
 
-    app.post('/game/double', async (req, res) => {
+    app.post('/api/game/double', async (req, res) => {
         try {
             const userID = randomUUID()
             const gameID = gameStateManager.createNewDoubleGame(userID)
@@ -83,7 +83,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
         }
     })
 
-    app.post('/game/join', async (req, res) => {
+    app.post('/api/game/join', async (req, res) => {
         try {
             const userID = randomUUID()
             const gameID = req.body.gameID
