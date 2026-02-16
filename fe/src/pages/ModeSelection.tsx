@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { createSingleGame, createDoubleGame, joinGame, getAvailableGames } from "../apis";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import GameSelectionModal from "../components/GameSelectionModal";
 
 export default function ModeSelection() {

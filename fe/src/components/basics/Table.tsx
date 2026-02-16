@@ -39,6 +39,7 @@ const Table = ({
 
     const tdStyle: React.CSSProperties = {
         padding: '16px 24px',
+        color: 'black'
     };
 
     return (
