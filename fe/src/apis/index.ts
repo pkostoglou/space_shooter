@@ -60,16 +60,18 @@ const joinGame = async (gameID: string) => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({gameID })
+            body: JSON.stringify({ gameID })
         })
     } catch (e) {
         console.log(e)
     }
 }
 
-const getAvailableGames = async (): Promise<string[]> => {
+const getAvailableGames = async (searchGameID?: string): Promise<string[]> => {
     try {
-        const response = await fetch(`${baseUrl}/game/double`, {
+        const params = new URLSearchParams();
+        if(searchGameID) params.append("gameID", searchGameID);
+        const response = await fetch(`${baseUrl}/game/double?${params}`, {
             method: "GET",
         })
         const games = await response.json()

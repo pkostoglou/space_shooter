@@ -7,8 +7,11 @@ const gameRoutes = (db: Database, gameStateManager: TGameManager) => {
 
     const gameRouter = Router()
 
-    gameRouter.get('/double', async (_, res) => {
-        const availableGames = gameStateManager.getAvailableGames()
+    gameRouter.get('/double', async (req, res) => {
+        let gameID:string|undefined = undefined
+        const gameIDQuary = req.query.gameID
+        if(typeof gameIDQuary == 'string') gameID = gameIDQuary
+        const availableGames = gameStateManager.getAvailableGames(gameID)
         res.status(200).json({ availableGames })
     })
 

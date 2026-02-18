@@ -1,11 +1,21 @@
-import { ReactNode } from "react";
+import { ReactNode, ChangeEvent } from "react";
 
 const Table = ({
     headers,
-    data
+    data,
+    tableActions
 }: {
     headers: string[],
-    data: ReactNode[][]
+    data: ReactNode[][],
+    tableActions?: {
+        refresh?: {
+            onRefresh: () => void
+        }
+        searchDocument?: {
+            onType: (event:ChangeEvent<HTMLInputElement>) => void
+            placeholder?: string
+        }
+    }
 }) => {
 
     const tableWrapperStyle: React.CSSProperties = {
@@ -18,6 +28,7 @@ const Table = ({
         width: '100%',
         backgroundColor: 'white',
         borderCollapse: 'collapse',
+        minWidth: '620px'
     };
 
     const theadStyle: React.CSSProperties = {
@@ -38,12 +49,42 @@ const Table = ({
     };
 
     const tdStyle: React.CSSProperties = {
-        padding: '16px 24px',
+        padding: '16px 23px',
         color: 'black'
     };
 
     return (
         <div style={tableWrapperStyle}>
+            {tableActions &&
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    backgroundColor: 'gray',
+                    padding: '8px'
+                }}>
+                    {
+                        tableActions.refresh &&
+                        <button style={{
+                            border:"none",
+                            backgroundColor:"inherit",
+                            fontSize: "24px",
+                            paddingBottom: "4px",
+                            paddingLeft: "24px",
+                            color:"white",
+                            cursor:"pointer"
+                        }} onClick={tableActions.refresh.onRefresh}>
+                            ⟳
+                        </button>
+                    }
+                    {
+                        tableActions.searchDocument &&
+                        <input
+                            onChange={tableActions.searchDocument.onType}
+                            placeholder={tableActions.searchDocument.placeholder}
+                        />
+                    }
+                </div>
+            }
             <table style={tableStyle}>
                 <thead style={theadStyle}>
                     <tr>

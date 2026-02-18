@@ -74,10 +74,11 @@ const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
         return true
     }
 
-    const getAvailableGames = (): UUID[] => {
+    const getAvailableGames = (searchGameID?: string): UUID[] => {
         const availableGames: UUID[] = []
         for (const [gameID, gameInfo] of Object.entries(gameStates)) {
             if (gameInfo.mode == 'double') {
+                if (searchGameID && !gameID.includes(searchGameID)) continue
                 if (gameInfo.players.length < 2) availableGames.push(gameID as UUID)
             }
         }

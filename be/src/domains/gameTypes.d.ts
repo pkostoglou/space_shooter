@@ -14,7 +14,7 @@ interface TGameManager {
     createNewSingleGame: (UUID:UUID) => UUID,
     createNewDoubleGame: (UUID:UUID) => UUID,
     joinGame: (UUID:UUID, UUID:UUID) => boolean,
-    getAvailableGames: () => UUID[]
+    getAvailableGames: (gameID: string | undefined) => UUID[]
 }
 
 export { Position, Size, TGameManager }

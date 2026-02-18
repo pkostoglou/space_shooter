@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { createSingleGame, createDoubleGame, joinGame, getAvailableGames } from "../apis";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import GameSelectionModal from "../components/GameSelectionModal";
+import { debounce } from "../utils/debounce";
 
 export default function ModeSelection() {
   const [games, setGames] = useState<string[]>([])
   const [findGamesModalIsOpen, setFindGamesModalIsOpen] = useState(false)
+  const searchGameIDRef = useRef<string|undefined>(undefined)
   const navigate = useNavigate();
 
   const handleSingleModeSelection = async () => {
@@ -26,9 +28,9 @@ export default function ModeSelection() {
     }
   }
 
-  const handleFetchGames = async () => {
+  const handleFetchGames = async (searchGameID?: string) => {
     try {
-      const availableGames = await getAvailableGames()
+      const availableGames = await getAvailableGames(searchGameID)
       setGames(availableGames)
       setFindGamesModalIsOpen(true)
     } catch (e) {
@@ -43,6 +45,13 @@ export default function ModeSelection() {
     } catch (e) {
       console.log(e)
     }
+  }
+
+  const handleGameSearch = (input: string) => {
+    searchGameIDRef.current = input
+    debounce(()=>{
+      handleFetchGames(input)
+    },800)
   }
 
   return (
@@ -101,7 +110,7 @@ export default function ModeSelection() {
       </button>
 
       <button
-        onClick={() => handleFetchGames()}
+        onClick={() => handleFetchGames(searchGameIDRef.current)}
         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#6d28d9'}
         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
         style={{
@@ -119,7 +128,14 @@ export default function ModeSelection() {
       >
         Find Multiplayer Game
       </button>
-      <GameSelectionModal isOpen={findGamesModalIsOpen} games={games} onJoinGame={(gameID)=>handleJoinGame(gameID)} />
+      <GameSelectionModal
+        isOpen={findGamesModalIsOpen}
+        games={games}
+        onJoinGame={(gameID)=>handleJoinGame(gameID)}
+        onRefresh={()=>handleFetchGames(searchGameIDRef.current)}
+        searchGame={(input:string)=>handleGameSearch(input)}
+        setIsOpen={setFindGamesModalIsOpen}
+        />
     </div>
   );
 }

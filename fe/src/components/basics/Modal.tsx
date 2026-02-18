@@ -1,12 +1,34 @@
-import { ReactNode } from "react";
+import { ReactNode, useRef, useEffect } from "react";
 
 const Modal = ({
     isOpen,
-    children
+    children,
+    setIsOpen
 }: {
     isOpen: boolean;
-    children: ReactNode
+    children: ReactNode;
+    setIsOpen?: (openStatus: boolean) => void;
 }) => {
+
+    const modalContentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if(!setIsOpen) return
+        const handleClickOutside = (event: MouseEvent) => {
+            if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+                console.log("Should close")
+                setIsOpen(false);
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, setIsOpen]);
 
     if (!isOpen) return null;
 
@@ -24,7 +46,9 @@ const Modal = ({
             alignItems: 'center',
             zIndex: 1000,
         }}>
-            {children}
+            <div ref={modalContentRef}>
+                {children}
+            </div>
         </div>
     );
 };
