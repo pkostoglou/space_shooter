@@ -1,7 +1,19 @@
 import { Game } from "./models/index.js";
+import type { Database } from "../domains/db.js";
+import { connectDB } from "./connection.js";
 
-const db = {
+const db:Database = {
     game: Game
 }
 
-export default db
+const initializeDb = async(MongoURI: string):Promise<Database> => {
+    try{
+        await connectDB(MongoURI)
+        return db
+    } catch(err) {
+        throw err
+    }
+    
+}
+
+export default initializeDb

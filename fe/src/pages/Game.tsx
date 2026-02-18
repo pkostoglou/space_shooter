@@ -130,7 +130,7 @@ export default function Game({
       if (data.score) {
         setScore(data.score)
       }
-      if (data.isGameActive == false) {
+      if (data.isGameOver == true) {
         setIsScoreModalOpen(true)
       }
     };

@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import type { UUID } from "node:crypto";
 import { extractCookies } from "../utils/index.js";
 
-const initializeGameStatesManager = (wss: WebSocketServer):TGameManager => {
+const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
     const gameStates: {
         [key: UUID]: {
             gameState: GameState,
@@ -35,6 +35,7 @@ const initializeGameStatesManager = (wss: WebSocketServer):TGameManager => {
         }, 10, gs, connections)
     }
 
+    // To clear a game state first stop the update interval and then remove it from the gameStates object
     const clearGameState = (UUID: UUID): void => {
         if (!gameStates[UUID]) return
         if (gameStates[UUID].updateInterval) clearInterval(gameStates[UUID].updateInterval)
@@ -44,7 +45,7 @@ const initializeGameStatesManager = (wss: WebSocketServer):TGameManager => {
     const createNewSingleGame = (playerID: UUID): UUID => {
         const UUID: UUID = randomUUID()
         gameStates[UUID] = {
-            gameState: new GameState(playerID),
+            gameState: new GameState(playerID, 'single'),
             connections: [],
             mode: 'single',
             players: [playerID],
@@ -56,7 +57,7 @@ const initializeGameStatesManager = (wss: WebSocketServer):TGameManager => {
     const createNewDoubleGame = (playerID: UUID): UUID => {
         const UUID: UUID = randomUUID()
         gameStates[UUID] = {
-            gameState: new GameState(playerID),
+            gameState: new GameState(playerID, 'double'),
             connections: [],
             mode: 'double',
             players: [playerID],
@@ -73,11 +74,11 @@ const initializeGameStatesManager = (wss: WebSocketServer):TGameManager => {
         return true
     }
 
-    const getAvailableGames = ():UUID[] => {
-        const availableGames:UUID[] = []
+    const getAvailableGames = (): UUID[] => {
+        const availableGames: UUID[] = []
         for (const [gameID, gameInfo] of Object.entries(gameStates)) {
-            if(gameInfo.mode=='double') {
-                if(gameInfo.players.length <2) availableGames.push(gameID as UUID)
+            if (gameInfo.mode == 'double') {
+                if (gameInfo.players.length < 2) availableGames.push(gameID as UUID)
             }
         }
 
@@ -108,7 +109,7 @@ const initializeGameStatesManager = (wss: WebSocketServer):TGameManager => {
 
             // Restart the game state
             if (m.type == "restart") {
-                gameStates[gameID].gameState = new GameState(playerID)
+                gameStates[gameID].gameState = new GameState(playerID, gameStates[gameID].mode)
                 if (gameStates[gameID].updateInterval) clearInterval(gameStates[gameID].updateInterval)
                 gameStates[gameID].updateInterval = setUpdateInterval(gameStates[gameID].gameState, gameStates[gameID].connections)
                 return

@@ -17,8 +17,10 @@ class GameState {
     private isGameActive: boolean
     private score: number
     private windowSize: Size
+    private gameMode: 'single' | 'double'
+    private isGameOver: boolean
 
-    constructor(playerID: UUID) {
+    constructor(playerID: UUID, gameMode: 'single' | 'double') {
         this.gameId = 1
         this.projectiles = []
         this.players = {}
@@ -27,11 +29,17 @@ class GameState {
             targetPosition: null
         }
         this.meteors = []
-        this.isGameActive = true
         this.score = 0
         this.windowSize = {
             width: 1400,
             height: 900
+        }
+        this.gameMode = gameMode
+        this.isGameOver = false
+        if (gameMode == 'single') {
+            this.isGameActive = true
+        } else {
+            this.isGameActive = false
         }
     }
 
@@ -57,6 +65,7 @@ class GameState {
             for (const [key, value] of Object.entries(this.players)) {
                 if (currentMeteor.detectCollisionWithElement(value.player)) {
                     this.isGameActive = false
+                    this.isGameOver = true
                 }
             }
 
@@ -182,6 +191,7 @@ class GameState {
             meteors: this.meteors,
             player: playersInfo,
             isGameActive: this.isGameActive,
+            isGameOver: this.isGameOver,
             score: this.score
         })
     }
@@ -200,6 +210,7 @@ class GameState {
             player: new Player({ x: 850, y: 450 }),
             targetPosition: null
         }
+        this.isGameActive = true
     }
 }
 

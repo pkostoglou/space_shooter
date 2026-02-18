@@ -10,10 +10,10 @@ type Size = {
     height: number
 }
 
-type TGameManager = {
-    createNewSingleGame: (UUID) => UUID,
-    createNewDoubleGame: (UUID) => UUID,
-    joinGame: (UUID, UUID) => boolean,
+interface TGameManager {
+    createNewSingleGame: (UUID:UUID) => UUID,
+    createNewDoubleGame: (UUID:UUID) => UUID,
+    joinGame: (UUID:UUID, UUID:UUID) => boolean,
     getAvailableGames: () => UUID[]
 }
 

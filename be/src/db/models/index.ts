@@ -1,13 +1,12 @@
-import mongoose from "mongoose";
-import config from "../../config/index.js";
+import mongoose, {Schema} from "mongoose";
+import type { IGame } from "../../domains/db.js";
 
-const MONGO_URI = config.mongoURI//'mongodb://user:pass@localhost:27017/db?authSource=admin';
-mongoose.connect(MONGO_URI).then(() => console.log("Connected to Mongo!")).catch((err) => console.log("Lol nope :", err))
 
-const GameSchema = new mongoose.Schema({
+const GameSchema = new Schema<IGame>({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim:true
     },
     score: {
         type: Number,
@@ -19,8 +18,4 @@ const GameSchema = new mongoose.Schema({
     },
 })
 
-const Game = mongoose.model("Game", GameSchema)
-
-export{
-    Game
-}
+export const Game = mongoose.model<IGame>("Game", GameSchema)

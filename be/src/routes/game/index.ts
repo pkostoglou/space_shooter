@@ -1,17 +1,18 @@
-import type { Express } from "express"
 import { randomUUID } from "node:crypto";
 import type { TGameManager } from "../../domains/gameTypes.js";
+import { Router } from "express";
+import type { Database } from "../../domains/db.js";
 
-const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
-    app.get('/api/game/double', async (req, res) => {
-        try {
-            const availableGames = gameStateManager.getAvailableGames()
-            res.status(200).json({ availableGames })
-        } catch (e) {
+const gameRoutes = (db: Database, gameStateManager: TGameManager) => {
 
-        }
+    const gameRouter = Router()
+
+    gameRouter.get('/double', async (_, res) => {
+        const availableGames = gameStateManager.getAvailableGames()
+        res.status(200).json({ availableGames })
     })
-    app.post('/api/game', async (req, res) => {
+
+    gameRouter.post('/', async (req, res) => {
         const {
             name,
             score
@@ -30,7 +31,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
         })
     })
 
-    app.get('/api/game', async (req, res) => {
+    gameRouter.get('/', async (_, res) => {
         try {
             const games = await db.game.find().sort({ score: -1 }).limit(20)
             res.json(games)
@@ -39,7 +40,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
         }
     })
 
-    app.post('/api/game/single', async (req, res) => {
+    gameRouter.post('/single', async (_, res) => {
         try {
             const userID = randomUUID()
             const gameID = gameStateManager.createNewSingleGame(userID)
@@ -61,7 +62,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
         }
     })
 
-    app.post('/api/game/double', async (req, res) => {
+    gameRouter.post('/double', async (_, res) => {
         try {
             const userID = randomUUID()
             const gameID = gameStateManager.createNewDoubleGame(userID)
@@ -83,7 +84,7 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
         }
     })
 
-    app.post('/api/game/join', async (req, res) => {
+    gameRouter.post('/join', async (req, res) => {
         try {
             const userID = randomUUID()
             const gameID = req.body.gameID
@@ -106,6 +107,8 @@ const gameRoutes = (app: Express, db: any, gameStateManager: TGameManager) => {
 
         }
     })
+
+    return gameRouter
 }
 
-export { gameRoutes }
+export default gameRoutes
