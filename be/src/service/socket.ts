@@ -1,130 +1,42 @@
-import type { WebSocket, WebSocketServer } from "ws";
-import GameState from "./GameState/GameState.js";
-import type { Position, TGameManager } from "../domains/gameTypes.js";
-import { randomUUID } from "node:crypto";
-import type { UUID } from "node:crypto";
-import { extractCookies } from "../utils/index.js";
+import type { WebSocketServer } from "ws"
+import type { TGameManager, Position } from "../domains/gameTypes.js"
+import type { UUID } from "node:crypto"
+import { extractCookies } from "../utils/index.js"
+import GameRegistry from "./GameRegistry.js"
 
 const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
-    const gameStates: {
-        [key: UUID]: {
-            gameState: GameState,
-            mode: 'single' | 'double'
-            connections: WebSocket[],
-            players: UUID[],
-            updateInterval: NodeJS.Timeout | null,
-            gameName: string
-        }
-    } = {}
-
-    /*  
-        Create the game logic loop and return the interval ID. In the loop calculate the delta of the time between intervals for better distance updates
-        Step 1. Run the game state logic routine
-        Step 2. Send the new game state
-        Step 3. clean out of bounds elements
-    */
-    const setUpdateInterval = (gs: GameState, connections: WebSocket[]): NodeJS.Timeout => {
-        let lastTime = Date.now();
-        return setInterval((gs: GameState, connections: WebSocket[]) => {
-            const currentTime = Date.now();
-            const deltaTime = currentTime - lastTime;
-            lastTime = currentTime;
-            gs.Tick(deltaTime)
-            const gameInfo = gs.getGameInfo()
-            connections.forEach(ws => ws.send(gameInfo))
-            gs.clearOutOfBoundsElements()
-        }, 10, gs, connections)
-    }
-
-    // To clear a game state first stop the update interval and then remove it from the gameStates object
-    const clearGameState = (UUID: UUID): void => {
-        if (!gameStates[UUID]) return
-        if (gameStates[UUID].updateInterval) clearInterval(gameStates[UUID].updateInterval)
-        delete gameStates[UUID]
-    }
-
-    const createNewSingleGame = (playerID: UUID): UUID => {
-        const UUID: UUID = randomUUID()
-        gameStates[UUID] = {
-            gameState: new GameState(playerID, 'single'),
-            connections: [],
-            mode: 'single',
-            players: [playerID],
-            updateInterval: null,
-            gameName: UUID
-        }
-        return UUID
-    }
-
-    const createNewDoubleGame = (playerID: UUID, gameName: string): UUID => {
-        const UUID: UUID = randomUUID()
-        gameStates[UUID] = {
-            gameState: new GameState(playerID, 'double'),
-            connections: [],
-            mode: 'double',
-            players: [playerID],
-            updateInterval: null,
-            gameName
-        }
-        return UUID
-    }
-
-    const joinGame = (playerID: UUID, gameID: UUID): boolean => {
-        if (!gameStates[gameID]) return false
-        if (gameStates[gameID].players.length >= 2) return false
-        gameStates[gameID].players.push(playerID)
-        gameStates[gameID].gameState.addPlayer(playerID)
-        return true
-    }
-
-    const getAvailableGames = (searchGameID?: string): { name: string, id: UUID }[] => {
-        const availableGames: { name: string, id: UUID }[] = []
-        for (const [gameID, gameInfo] of Object.entries(gameStates)) {
-            if (gameInfo.mode == 'double') {
-                if (searchGameID && !gameInfo.gameName.includes(searchGameID)) continue
-                if (gameInfo.players.length < 2) availableGames.push({ name: gameInfo.gameName, id: gameID as UUID})
-            }
-        }
-
-        return availableGames
-    }
+    const registry = new GameRegistry()
 
     wss.on('connection', (ws, req) => {
         if (!req.headers.cookie) return
-        // Extract from the cookies the gameID and the playerID
         const cookies = extractCookies(req.headers.cookie)
         if (!cookies.userID || !cookies.gameID) return
         const gameID = cookies.gameID as UUID
         const playerID = cookies.userID as UUID
-        if (!gameStates[gameID]) return
-        gameStates[gameID].connections.push(ws)
-        if (gameStates[gameID] && !gameStates[gameID].updateInterval) {
-            gameStates[gameID].updateInterval = setUpdateInterval(gameStates[gameID].gameState, gameStates[gameID].connections)
-        }
+        const slot = registry.getSlot(gameID)
+        if (!slot) return
+        slot.connections.push(ws)
+        registry.startLoop(gameID)
 
         let lastTime = Date.now()
         ws.on('message', (message) => {
             const currentTime = Date.now()
             const deltaTime = currentTime - lastTime
             lastTime = currentTime
-            if (!gameStates[gameID]) return
-            const gs = gameStates[gameID].gameState
             const m: any = JSON.parse(message.toString())
 
-            // Restart the game state
-            if (m.type == "restart") {
-                gameStates[gameID].gameState = new GameState(playerID, gameStates[gameID].mode)
-                if (gameStates[gameID].updateInterval) clearInterval(gameStates[gameID].updateInterval)
-                gameStates[gameID].updateInterval = setUpdateInterval(gameStates[gameID].gameState, gameStates[gameID].connections)
+            if (m.type === 'restart') {
+                registry.restartGame(playerID, gameID)
                 return
             }
 
-            // Handle player movement
+            const gs = registry.getSlot(gameID)?.gameState
+            if (!gs) return
+
             if (m.playerMovement) {
                 gs.movePlayer(playerID, m.playerMovement, deltaTime)
             }
 
-            // Update the target (mouse most likely) position
             if (m.targetPosition) {
                 const targetPosition: Position = {
                     x: m.targetPosition.targetPositionX,
@@ -132,35 +44,26 @@ const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
                 }
                 gs.setTargetPosition(playerID, targetPosition)
             }
+
             if (m.mouseIsBeingPressed) {
                 gs.playerIsShooting(playerID, deltaTime)
             } else {
                 gs.playerIsNotShooting(playerID)
             }
+        })
 
-        });
-
-        // Handle disconnect
         ws.on('close', () => {
-            console.log(`Player disconnected`);
-            clearGameState(gameID)
+            console.log(`Player disconnected`)
+            registry.clearSlot(gameID)
+        })
 
-        });
-
-        // Handle errors
         ws.on('error', (error) => {
-            console.error(`WebSocket error for player :`, error);
-            clearGameState(gameID)
-        });
+            console.error(`WebSocket error for player :`, error)
+            registry.clearSlot(gameID)
+        })
+    })
 
-    });
-
-    return {
-        createNewSingleGame,
-        createNewDoubleGame,
-        joinGame,
-        getAvailableGames
-    }
+    return registry
 }
 
 export default initializeGameStatesManager
