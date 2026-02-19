@@ -95,7 +95,7 @@ const gameRoutes = (db: Database, gameStateManager: TGameManager) => {
             const userID = randomUUID()
             const gameID = req.body.gameID
             const success = gameStateManager.joinGame(userID, gameID)
-            if (!success) res.status(404).json({ message: "Game not found" })
+            if (!success) return res.status(404).json({ message: "Game not found or is full" })
             res.cookie('userID', userID, {
                 httpOnly: true,
                 secure: false,

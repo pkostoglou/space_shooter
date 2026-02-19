@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { createSingleGame, createDoubleGame, joinGame, getAvailableGames } from "../apis";
-import { useState, useRef, ChangeEvent, useEffect } from "react";
+import { useState, useRef, ChangeEvent } from "react";
 import GameSelectionModal from "../components/GameSelectionModal";
 import { debounce } from "../utils/debounce";
 import { useToast } from "../context/ToastContext";
@@ -46,12 +46,13 @@ export default function ModeSelection() {
   }
 
   const handleJoinGame = async (gameID: string) => {
-    try {
-      await joinGame(gameID)
-      navigate('/double')
-    } catch (e) {
-      console.log(e)
+    const result = await joinGame(gameID)
+    if (!result.success) {
+      pushToast(result.message ?? "Failed to join game", "error")
+      handleFetchGames(searchGameIDRef.current)
+      return
     }
+    navigate('/double')
   }
 
   const handleGameSearch = (input: string) => {
@@ -62,16 +63,6 @@ export default function ModeSelection() {
   }
 
   const { pushToast } = useToast();
-
-
-  useEffect(() => {
-    setTimeout(() => {
-      pushToast("Game joined!", "info");
-      pushToast("Connection unstable", "warning");
-      pushToast("Failed to connect", "error");
-    }, 2000)
-
-  }, [])
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a1a] gap-4 w-full">

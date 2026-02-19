@@ -71,7 +71,7 @@ const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
 
     const joinGame = (playerID: UUID, gameID: UUID): boolean => {
         if (!gameStates[gameID]) return false
-        if (gameStates[gameID].players.length > 2) return false
+        if (gameStates[gameID].players.length >= 2) return false
         gameStates[gameID].players.push(playerID)
         gameStates[gameID].gameState.addPlayer(playerID)
         return true

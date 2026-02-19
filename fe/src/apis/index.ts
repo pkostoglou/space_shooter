@@ -58,9 +58,9 @@ const createDoubleGame = async (gameName:string) => {
     }
 }
 
-const joinGame = async (gameID: string) => {
+const joinGame = async (gameID: string): Promise<{ success: boolean; message?: string }> => {
     try {
-        await fetch(`${baseUrl}/game/join`, {
+        const response = await fetch(`${baseUrl}/game/join`, {
             method: "POST",
             credentials: 'include',
             headers: {
@@ -68,8 +68,13 @@ const joinGame = async (gameID: string) => {
             },
             body: JSON.stringify({ gameID })
         })
-    } catch (e) {
-        console.log(e)
+        if (!response.ok) {
+            const data = await response.json()
+            return { success: false, message: data.message ?? "Failed to join game" }
+        }
+        return { success: true }
+    } catch {
+        return { success: false, message: "Failed to join game" }
     }
 }
 
