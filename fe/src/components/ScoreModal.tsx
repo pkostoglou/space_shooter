@@ -20,12 +20,6 @@ const ScoreModal = ({
   const [userIsAbleToSave, setUserIsAbleToSave] = useState(true)
   const [scoreRank, setScoreRank] = useState<number | null>(null)
 
-  const containerStyle: React.CSSProperties = {
-    width: '100%',
-    maxWidth: '900px',
-    margin: '0 auto',
-    padding: '24px',
-  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userIsAbleToSave) return
@@ -54,30 +48,13 @@ const ScoreModal = ({
   return (
     <Modal isOpen={isOpen}>
       {currentView == "actions" ?
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          padding: '32px',
-          maxWidth: '400px',
-          width: '90%',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        }}>
-          <h2 style={{
-            margin: '0 0 8px 0',
-            fontSize: '28px',
-            color: '#333',
-            textAlign: 'center',
-          }}>
+        <div className="bg-white rounded-xl p-8 max-w-[400px] w-[90%] shadow-md">
+          <h2 className="m-0 mb-2 text-[28px] text-[#333] text-center">
             Game Over!
           </h2>
 
-          <p style={{
-            margin: '0 0 24px 0',
-            fontSize: '16px',
-            color: '#666',
-            textAlign: 'center',
-          }}>
-            Your score: <strong style={{ color: '#1099bb', fontSize: '20px' }}>{score}</strong> {scoreRank && <>Your rank <strong style={{ color: '#1099bb', fontSize: '20px' }}>#{scoreRank}</strong></>}
+          <p className="mb-6 text-base text-gray-500 text-center">
+            Your score: <strong className="text-[#1099bb] text-xl">{score}</strong> {scoreRank && <>Your rank <strong className="text-[#1099bb] text-xl">#{scoreRank}</strong></>}
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -87,47 +64,18 @@ const ScoreModal = ({
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               maxLength={20}
-              style={{
-                width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                border: '2px solid #ddd',
-                borderRadius: '8px',
-                marginBottom: '16px',
-                boxSizing: 'border-box',
-                outline: 'none',
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#1099bb'}
-              onBlur={(e) => e.target.style.borderColor = '#ddd'}
+              className="w-full p-3 text-base border-2 border-gray-300 rounded-lg mb-4 outline-none transition-colors focus:border-[#1099bb] text-black"
               autoFocus
             />
 
             <button
               type="submit"
               disabled={!playerName.trim() || !userIsAbleToSave}
-              style={{
-                width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: 'white',
-                backgroundColor: playerName.trim() ? '#1099bb' : '#ccc',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: playerName.trim() ? 'pointer' : 'not-allowed',
-                marginBottom: '12px',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                if (playerName.trim()) {
-                  e.currentTarget.style.backgroundColor = '#0d7a9a';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (playerName.trim()) {
-                  e.currentTarget.style.backgroundColor = '#1099bb';
-                }
-              }}
+              className={`w-full p-3 text-base font-bold text-white border-none rounded-lg mb-3 transition-colors duration-200 ${
+                playerName.trim()
+                  ? "bg-[#1099bb] cursor-pointer hover:bg-[#0d7a9a]"
+                  : "bg-gray-300 cursor-not-allowed"
+              }`}
             >
               {userIsAbleToSave ? "Save Score" : "Score Saved!"}
             </button>
@@ -135,79 +83,22 @@ const ScoreModal = ({
 
           <button
             onClick={() => { onRestart(); setScoreRank(null); setUserIsAbleToSave(true) }}
-            style={{
-              width: '100%',
-              padding: '12px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              color: '#333',
-              backgroundColor: '#f0f0f0',
-              border: '2px solid #ddd',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-              marginBottom: "12px"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e0e0e0';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f0f0f0';
-            }}
+            className="w-full p-3 text-base font-bold text-[#333] bg-gray-100 border-2 border-gray-300 rounded-lg cursor-pointer transition-colors duration-200 mb-3 hover:bg-gray-200"
           >
             Restart Game
           </button>
           <button
             onClick={() => getToLeaderboards()}
-            style={{
-              width: '100%',
-              padding: '12px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              color: '#333',
-              backgroundColor: '#f0f0f0',
-              border: '2px solid #ddd',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#e0e0e0';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f0f0f0';
-            }}
+            className="w-full p-3 text-base font-bold text-[#333] bg-gray-100 border-2 border-gray-300 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-200"
           >
             Leaderboards
           </button>
         </div>
         :
-        <div style={containerStyle}>
+        <div className="w-full max-w-[900px] mx-auto px-6 py-6">
           <button
             onClick={() => setCurrentView("actions")}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)';
-              e.currentTarget.style.transform = 'translateX(-4px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.transform = 'translateX(0)';
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: 'transparent',
-              border: '2px solid rgba(255,255,255,0.5)',
-              borderRadius: '8px',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              padding: '8px 16px',
-              cursor: 'pointer',
-              marginBottom: '16px',
-              transition: 'all 0.2s ease',
-            }}
+            className="flex items-center gap-2 bg-transparent border-2 border-white/50 rounded-lg text-white text-base font-bold px-4 py-2 cursor-pointer mb-4 transition-all duration-200 hover:bg-white/20 hover:-translate-x-1"
           >
             ←
           </button>

@@ -1,13 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { createSingleGame, createDoubleGame, joinGame, getAvailableGames } from "../apis";
-import { useState, useRef } from "react";
+import { useState, useRef, ChangeEvent, useEffect } from "react";
 import GameSelectionModal from "../components/GameSelectionModal";
 import { debounce } from "../utils/debounce";
+import { useToast } from "../context/ToastContext";
 
 export default function ModeSelection() {
-  const [games, setGames] = useState<string[]>([])
+  const [games, setGames] = useState<{ name: string, id: string }[]>([])
   const [findGamesModalIsOpen, setFindGamesModalIsOpen] = useState(false)
-  const searchGameIDRef = useRef<string|undefined>(undefined)
+  const [doublesGameName, setDoublesGameName] = useState("")
+  const [doublesGameError, setDoublesGameError] = useState(false)
+  const searchGameIDRef = useRef<string | undefined>(undefined)
   const navigate = useNavigate();
 
   const handleSingleModeSelection = async () => {
@@ -20,8 +23,12 @@ export default function ModeSelection() {
   }
 
   const handleDoubleModeSelection = async () => {
+    if (doublesGameName == "") {
+      setDoublesGameError(true)
+      return
+    }
     try {
-      await createDoubleGame()
+      await createDoubleGame(doublesGameName)
       navigate('/double')
     } catch (e) {
       console.log(e)
@@ -49,93 +56,68 @@ export default function ModeSelection() {
 
   const handleGameSearch = (input: string) => {
     searchGameIDRef.current = input
-    debounce(()=>{
+    debounce(() => {
       handleFetchGames(input)
-    },800)
+    }, 800)
   }
 
+  const { pushToast } = useToast();
+
+
+  useEffect(() => {
+    setTimeout(() => {
+      pushToast("Game joined!", "info");
+      pushToast("Connection unstable", "warning");
+      pushToast("Failed to connect", "error");
+    }, 2000)
+
+  }, [])
+
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100vh',
-      backgroundColor: '#0a0a1a',
-      gap: '16px',
-      width: '100%'
-    }}>
-      <h1 style={{ color: 'white', fontSize: '48px', marginBottom: '32px' }}>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a1a] gap-4 w-full">
+      <h1 className="text-white text-5xl mb-8">
         Space Shooter 🚀
       </h1>
 
       <button
         onClick={() => handleSingleModeSelection()}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0d7a9a'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1099bb'}
-        style={{
-          width: '280px',
-          padding: '16px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          color: 'white',
-          backgroundColor: '#1099bb',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s'
-        }}
+        className="w-[280px] p-4 text-lg font-bold text-white bg-[#1099bb] border-none rounded-lg cursor-pointer transition-colors duration-200 hover:bg-[#0d7a9a]"
       >
         Single Player
       </button>
 
-      <button
-        onClick={() => handleDoubleModeSelection()}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#6d28d9'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
-        style={{
-          width: '280px',
-          padding: '16px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          color: 'white',
-          backgroundColor: '#7c3aed',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s'
-        }}
-      >
-        Create Multiplayer Game
-      </button>
+      <div className="flex flex-col gap-1 bg-[#0d7a9a] items-center rounded-lg">
+        <div className="py-3">
+          <input
+            placeholder="Game name"
+            value={doublesGameName}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => { setDoublesGameName(e.target.value); setDoublesGameError(false) }}
+            className={`w-full h-10 text-base text-gray-800 bg-gray-50 border-2 rounded-lg outline-none transition-all duration-300 shadow-sm focus:border-[#667eea] focus:ring-2 focus:ring-[#667eea]/10 ${doublesGameError ? "border-red-500" : "border-gray-200"
+              }`}
+          />
+        </div>
+        <button
+          onClick={() => handleDoubleModeSelection()}
+          className="w-[280px] p-4 text-lg font-bold text-white bg-violet-600 border-none rounded-lg cursor-pointer transition-colors duration-200 hover:bg-violet-700"
+        >
+          Create Multiplayer Game
+        </button>
+      </div>
 
       <button
         onClick={() => handleFetchGames(searchGameIDRef.current)}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#6d28d9'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
-        style={{
-          width: '280px',
-          padding: '16px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          color: 'white',
-          backgroundColor: '#7c3aed',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          transition: 'background-color 0.2s'
-        }}
+        className="w-[280px] p-4 text-lg font-bold text-white bg-violet-600 border-none rounded-lg cursor-pointer transition-colors duration-200 hover:bg-violet-700"
       >
         Find Multiplayer Game
       </button>
       <GameSelectionModal
         isOpen={findGamesModalIsOpen}
         games={games}
-        onJoinGame={(gameID)=>handleJoinGame(gameID)}
-        onRefresh={()=>handleFetchGames(searchGameIDRef.current)}
-        searchGame={(input:string)=>handleGameSearch(input)}
+        onJoinGame={(gameID) => handleJoinGame(gameID)}
+        onRefresh={() => handleFetchGames(searchGameIDRef.current)}
+        searchGame={(input: string) => handleGameSearch(input)}
         setIsOpen={setFindGamesModalIsOpen}
-        />
+      />
     </div>
   );
 }

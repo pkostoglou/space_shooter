@@ -12,9 +12,9 @@ type Size = {
 
 interface TGameManager {
     createNewSingleGame: (UUID:UUID) => UUID,
-    createNewDoubleGame: (UUID:UUID) => UUID,
+    createNewDoubleGame: (UUID:UUID, gameName: string) => UUID,
     joinGame: (UUID:UUID, UUID:UUID) => boolean,
-    getAvailableGames: (gameID: string | undefined) => UUID[]
+    getAvailableGames: (gameID: string | undefined) => {name: string, id: UUID}[]
 }
 
 export { Position, Size, TGameManager }

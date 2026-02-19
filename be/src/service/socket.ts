@@ -12,7 +12,8 @@ const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
             mode: 'single' | 'double'
             connections: WebSocket[],
             players: UUID[],
-            updateInterval: NodeJS.Timeout | null
+            updateInterval: NodeJS.Timeout | null,
+            gameName: string
         }
     } = {}
 
@@ -49,19 +50,21 @@ const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
             connections: [],
             mode: 'single',
             players: [playerID],
-            updateInterval: null
+            updateInterval: null,
+            gameName: UUID
         }
         return UUID
     }
 
-    const createNewDoubleGame = (playerID: UUID): UUID => {
+    const createNewDoubleGame = (playerID: UUID, gameName: string): UUID => {
         const UUID: UUID = randomUUID()
         gameStates[UUID] = {
             gameState: new GameState(playerID, 'double'),
             connections: [],
             mode: 'double',
             players: [playerID],
-            updateInterval: null
+            updateInterval: null,
+            gameName
         }
         return UUID
     }
@@ -74,12 +77,12 @@ const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
         return true
     }
 
-    const getAvailableGames = (searchGameID?: string): UUID[] => {
-        const availableGames: UUID[] = []
+    const getAvailableGames = (searchGameID?: string): { name: string, id: UUID }[] => {
+        const availableGames: { name: string, id: UUID }[] = []
         for (const [gameID, gameInfo] of Object.entries(gameStates)) {
             if (gameInfo.mode == 'double') {
-                if (searchGameID && !gameID.includes(searchGameID)) continue
-                if (gameInfo.players.length < 2) availableGames.push(gameID as UUID)
+                if (searchGameID && !gameInfo.gameName.includes(searchGameID)) continue
+                if (gameInfo.players.length < 2) availableGames.push({ name: gameInfo.gameName, id: gameID as UUID})
             }
         }
 

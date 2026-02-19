@@ -18,61 +18,16 @@ const Table = ({
     }
 }) => {
 
-    const tableWrapperStyle: React.CSSProperties = {
-        overflow: 'auto',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-        borderRadius: '8px',
-    };
-
-    const tableStyle: React.CSSProperties = {
-        width: '100%',
-        backgroundColor: 'white',
-        borderCollapse: 'collapse',
-        minWidth: '620px'
-    };
-
-    const theadStyle: React.CSSProperties = {
-        background: '#3b82f6',
-        color: 'white',
-    };
-
-    const thStyle: React.CSSProperties = {
-        padding: '16px 24px',
-        textAlign: 'left',
-        fontWeight: '600',
-    };
-
-    const rowStyle: React.CSSProperties = {
-        borderBottom: '1px solid #e5e7eb',
-        backgroundColor: 'white',
-        transition: 'background-color 0.2s',
-    };
-
-    const tdStyle: React.CSSProperties = {
-        padding: '16px 23px',
-        color: 'black'
-    };
-
     return (
-        <div style={tableWrapperStyle}>
+        <div className="overflow-auto shadow-lg rounded-lg">
             {tableActions &&
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    backgroundColor: 'gray',
-                    padding: '8px'
-                }}>
+                <div className="flex justify-between bg-gray-500 p-2">
                     {
                         tableActions.refresh &&
-                        <button style={{
-                            border:"none",
-                            backgroundColor:"inherit",
-                            fontSize: "24px",
-                            paddingBottom: "4px",
-                            paddingLeft: "24px",
-                            color:"white",
-                            cursor:"pointer"
-                        }} onClick={tableActions.refresh.onRefresh}>
+                        <button
+                            className="border-none bg-inherit text-2xl pb-1 pl-6 text-white cursor-pointer"
+                            onClick={tableActions.refresh.onRefresh}
+                        >
                             ⟳
                         </button>
                     }
@@ -85,12 +40,12 @@ const Table = ({
                     }
                 </div>
             }
-            <table style={tableStyle}>
-                <thead style={theadStyle}>
+            <table className="w-full bg-white border-collapse min-w-[620px]">
+                <thead className="bg-blue-500 text-white">
                     <tr>
                         {
                             headers.map((header, key) => (
-                                <th key={`${header}-${key}`} style={thStyle}>{header}</th>
+                                <th key={`${header}-${key}`} className="px-6 py-4 text-left font-semibold">{header}</th>
                             ))
                         }
                     </tr>
@@ -99,11 +54,11 @@ const Table = ({
                     {data.map((dataRow, index) => (
                         <tr
                             key={index}
-                            style={rowStyle}
+                            className="border-b border-gray-200 bg-white hover:bg-gray-50 transition-colors duration-200"
                         >
                             {
                                 dataRow.map((data, dataIndex) => (
-                                    <td key={`${index}-${dataIndex}`} style={tdStyle}>
+                                    <td key={`${index}-${dataIndex}`} className="px-6 py-4 text-black">
                                         {data}
                                     </td>
                                 ))

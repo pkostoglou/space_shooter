@@ -11,7 +11,7 @@ const GameSelectionModal = ({
     setIsOpen
 }: {
     isOpen: boolean;
-    games: string[];
+    games: {name:string, id: string}[];
     onJoinGame: (gameID: string) => void
     onRefresh: () => void
     searchGame: (input: string) => void
@@ -26,12 +26,13 @@ const GameSelectionModal = ({
             const currentRow = games[i]
             const transformedRow: ReactNode[] = []
             transformedRow.push(
-                <span style={{
-                    color: "black"
-                }}>{currentRow}</span>
+                <span className="text-black text-lg">{currentRow.name}</span>
             )
             transformedRow.push(
-                <button onClick={() => onJoinGame(currentRow)}>Join</button>
+                <button
+                    onClick={() => onJoinGame(currentRow.id)}
+                    className="px-6 py-2.5 text-sm font-semibold text-white bg-[#667eea] border-none rounded-lg cursor-pointer shadow-[0_4px_15px_rgba(102,126,234,0.4)] transition-all duration-300 uppercase tracking-wide hover:-translate-y-0.5 hover:shadow-xl active:scale-95"
+                >Join</button>
             )
             finalGames.push(transformedRow)
         }
@@ -40,16 +41,9 @@ const GameSelectionModal = ({
 
     return (
         <Modal isOpen={isOpen} setIsOpen={setIsOpen}>
-            <div style={{
-                width: '100%',
-                minWidth: '400px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0px',
-                margin: 'auto'
-            }}>
+            <div className="w-full min-w-[400px] flex flex-col m-auto">
                 <Table
-                    headers={["Game ID", "Actions"]}
+                    headers={["Game Name", "Actions"]}
                     data={transformedGames}
                     tableActions={{
                         refresh: {

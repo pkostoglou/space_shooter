@@ -8,25 +8,12 @@ const Leaderboard = ({
     leaderboard: any[]
 }) => {
     const [transformedLeaderboard, setTransformedLeaderboard] = useState<ReactNode[][]>([])
-    const tableWrapperStyle: React.CSSProperties = {
-        overflow: 'auto',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-        borderRadius: '8px',
-    };
 
-    const getRankStyle = (index: number): React.CSSProperties => ({
-        fontWeight: 'bold',
-        fontSize: '18px',
-        color: index === 0 ? '#eab308' : index === 1 ? '#9ca3af' : index === 2 ? '#ea580c' : '#000',
-    });
-
-    const scoreStyle: React.CSSProperties = {
-        backgroundColor: '#dbeafe',
-        color: '#1e40af',
-        padding: '4px 12px',
-        borderRadius: '9999px',
-        fontWeight: '600',
-        display: 'inline-block',
+    const getRankClass = (index: number): string => {
+        if (index === 0) return "font-bold text-lg text-yellow-500";
+        if (index === 1) return "font-bold text-lg text-gray-400";
+        if (index === 2) return "font-bold text-lg text-orange-600";
+        return "font-bold text-lg text-black";
     };
 
     useEffect(() => {
@@ -35,7 +22,7 @@ const Leaderboard = ({
             const currentRow = leaderboard[i]
             const currentTransformedRow: ReactNode[] = []
             currentTransformedRow.push(
-                <span style={getRankStyle(i)}>
+                <span className={getRankClass(i)}>
                     {i === 0 && '🥇'}
                     {i === 1 && '🥈'}
                     {i === 2 && '🥉'}
@@ -46,7 +33,7 @@ const Leaderboard = ({
                 <span>{currentRow.name}</span>
             )
             currentTransformedRow.push(
-                <span style={scoreStyle}>
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-semibold inline-block">
                     {currentRow.score.toLocaleString()}
                 </span>
             )
@@ -59,7 +46,7 @@ const Leaderboard = ({
     }, [leaderboard])
 
     return (
-        <div style={tableWrapperStyle}>
+        <div className="overflow-auto shadow-lg rounded-lg">
             <Table
                 headers={["Rank","Name","Score","Date"]}
                 data={transformedLeaderboard}

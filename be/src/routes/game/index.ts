@@ -65,10 +65,13 @@ const gameRoutes = (db: Database, gameStateManager: TGameManager) => {
         }
     })
 
-    gameRouter.post('/double', async (_, res) => {
+    gameRouter.post('/double', async (req, res) => {
         try {
+            const {
+                gameName
+            } = req.body
             const userID = randomUUID()
-            const gameID = gameStateManager.createNewDoubleGame(userID)
+            const gameID = gameStateManager.createNewDoubleGame(userID, gameName)
             res.cookie('userID', userID, {
                 httpOnly: true,
                 secure: false,

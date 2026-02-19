@@ -41,11 +41,17 @@ const createSingleGame = async () => {
     }
 }
 
-const createDoubleGame = async () => {
+const createDoubleGame = async (gameName:string) => {
     try {
         await fetch(`${baseUrl}/game/double`, {
             method: "POST",
             credentials: 'include',
+            headers:{
+                "Content-type": "application/json"
+            },
+            body:JSON.stringify({
+                gameName
+            })
         })
     } catch (e) {
         console.log(e)
@@ -67,7 +73,7 @@ const joinGame = async (gameID: string) => {
     }
 }
 
-const getAvailableGames = async (searchGameID?: string): Promise<string[]> => {
+const getAvailableGames = async (searchGameID?: string): Promise<{name: string, id: string}[]> => {
     try {
         const params = new URLSearchParams();
         if(searchGameID) params.append("gameID", searchGameID);
@@ -75,7 +81,7 @@ const getAvailableGames = async (searchGameID?: string): Promise<string[]> => {
             method: "GET",
         })
         const games = await response.json()
-        return games.availableGames as string[]
+        return games.availableGames as {name: string, id: string}[]
     } catch (e) {
         console.log(e)
         return []
