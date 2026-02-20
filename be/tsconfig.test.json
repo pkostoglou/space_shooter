@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noUncheckedSideEffectImports": false,
+        "noEmit": true
+    },
+    "include": ["src/**/*"]
+}

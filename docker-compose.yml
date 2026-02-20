@@ -1,0 +1,58 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend_net
+
+  be:
+    build:
+      context: ./be
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./be/.env
+    environment:
+      MONGO_URI: "mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_INITDB_DATABASE}?authSource=admin"
+    volumes:
+      - ./be/src:/app/src
+      - be_node_modules:/app/node_modules
+    depends_on:
+      - mongo
+    networks:
+      - backend_net
+      - frontend_net
+
+  fe:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./fe/.env
+    volumes:
+      - ./fe/src:/app/src
+      - fe_node_modules:/app/node_modules
+    depends_on:
+      - be
+    networks:
+      - frontend_net
+
+networks:
+  backend_net:
+  frontend_net:
+
+volumes:
+  mongo_data:
+  be_node_modules:
+  fe_node_modules:

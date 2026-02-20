@@ -4,8 +4,10 @@ import type { UUID } from "node:crypto"
 import { extractCookies } from "../utils/index.js"
 import GameRegistry from "./GameRegistry.js"
 
-const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
-    const registry = new GameRegistry()
+const initializeGameStatesManager = (
+    wss: WebSocketServer,
+    registry: GameRegistry = new GameRegistry()
+): TGameManager => {
 
     wss.on('connection', (ws, req) => {
         if (!req.headers.cookie) return
@@ -53,7 +55,7 @@ const initializeGameStatesManager = (wss: WebSocketServer): TGameManager => {
         })
 
         ws.on('close', () => {
-            console.log(`Player disconnected`)
+            console.log(`Player disconnected!`)
             registry.clearSlot(gameID)
         })
 
