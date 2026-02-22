@@ -56,5 +56,15 @@ describe('PassiveElement', () => {
             // x += 4 * (32/16) * 1 = 8
             expect(pos.x).toBeCloseTo(8, 5)
         })
+
+        it('moves straight down when target x equals initial x', () => {
+            const el = new PassiveElement({ x: 700, y: 0 }, { x: 700, y: 900 }, { width: 100, height: 100 })
+            el.passiveMovement(16)
+            el.passiveMovement(16)
+            const pos = el.getPosition()
+            expect(pos.x).toBe(700)          // x must not drift
+            expect(pos.y).toBeGreaterThan(0) // y must increase (moving down)
+            expect(isFinite(pos.y)).toBe(true)
+        })
     })
 })

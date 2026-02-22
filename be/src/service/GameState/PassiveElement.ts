@@ -7,25 +7,37 @@ class PassiveElement extends Element {
     protected direction: number
     protected angle: number
     protected speed: number
+    protected isVertical: boolean
 
     constructor(initialPosition: Position, targetPosition: Position, size: Size) {
         super(initialPosition, size)
-        const a = (targetPosition.y - initialPosition.y) / (targetPosition.x - initialPosition.x)
-        const b = targetPosition.y - a * targetPosition.x
+        const dx = targetPosition.x - initialPosition.x
+        const dy = targetPosition.y - initialPosition.y
 
-        const direction = targetPosition.x > initialPosition.x ? 1 : -1
-        const angle = Math.atan(a)
+        if (dx === 0) {
+            this.a = 0
+            this.b = 0
+            this.direction = dy > 0 ? 1 : -1
+            this.angle = Math.PI / 2
+            this.isVertical = true
+        } else {
+            this.a = dy / dx
+            this.b = targetPosition.y - this.a * targetPosition.x
+            this.direction = dx > 0 ? 1 : -1
+            this.angle = Math.atan(this.a)
+            this.isVertical = false
+        }
 
-        this.a = a
-        this.b = b
-        this.direction = direction
-        this.angle = angle
         this.speed = 4
     }
 
     public passiveMovement(deltaTime: number) {
-        this.currentPosition.x += this.speed * (deltaTime / 16) * Math.cos(this.angle) * this.direction
-        this.currentPosition.y = this.a * this.currentPosition.x + this.b
+        if (this.isVertical) {
+            this.currentPosition.y += this.speed * (deltaTime / 16) * this.direction
+        } else {
+            this.currentPosition.x += this.speed * (deltaTime / 16) * Math.cos(this.angle) * this.direction
+            this.currentPosition.y = this.a * this.currentPosition.x + this.b
+        }
     }
 }
 
