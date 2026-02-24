@@ -16,18 +16,8 @@ const gameRoutes = (db: Database, gameStateManager: TGameManager) => {
     })
 
     gameRouter.post('/', async (req, res) => {
-        const {
-            name,
-            score
-        } = req.body
-
-        const game = new db.game({
-            name,
-            score
-        })
-        await game.save()
-        // Count how many scores are higher than this one
-        const rank = await db.game.countDocuments({ score: { $gt: score } }) + 1
+        const { name, score } = req.body
+        const { rank } = await db.game.saveScore(name, score)
         res.json({
             message: "Game saved succesfully!",
             rank
@@ -36,7 +26,7 @@ const gameRoutes = (db: Database, gameStateManager: TGameManager) => {
 
     gameRouter.get('/', async (_, res) => {
         try {
-            const games = await db.game.find().sort({ score: -1 }).limit(20)
+            const games = await db.game.getLeaderboard()
             res.json(games)
         } catch (e) {
             res.status(500).json({ error: "Cant" })

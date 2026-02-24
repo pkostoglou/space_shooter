@@ -1,4 +1,4 @@
-import type { Document, Model } from "mongoose";
+import type { Document } from "mongoose";
 
 export interface IGame extends Document {
     name: string;
@@ -6,6 +6,11 @@ export interface IGame extends Document {
     createdAt: Date;
 }
 
+export interface IGameRepository {
+    saveScore: (name: string, score: number) => Promise<{ rank: number }>;
+    getLeaderboard: () => Promise<IGame[]>;
+}
+
 export interface Database {
-    game: Model<IGame>
+    game: IGameRepository;
 }

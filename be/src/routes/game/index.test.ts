@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import { randomUUID } from 'node:crypto'
 import type { UUID } from 'node:crypto'
-import { Game } from '../../db/models/index.js'
 import type { Database } from '../../domains/db.js'
 import type { TGameManager } from '../../domains/gameTypes.js'
 import { createApp } from '../../app.js'
@@ -26,21 +25,37 @@ const mockManager: TGameManager = {
     ]
 }
 
-const db: Database = { game: Game }
+const db: Database = {
+    game: {
+        saveScore: vi.fn(),
+        getLeaderboard: vi.fn(),
+    },
+}
+
 const app = createApp(db, mockManager, 'http://localhost:5173')
+
+beforeEach(() => {
+    vi.mocked(db.game.saveScore).mockReset()
+    vi.mocked(db.game.getLeaderboard).mockReset()
+})
 
 describe('GET /api/game', () => {
     it('returns an empty array when no scores are saved', async () => {
+        vi.mocked(db.game.getLeaderboard).mockResolvedValue([])
+
         const res = await request(app).get('/api/game')
         expect(res.status).toBe(200)
         expect(Array.isArray(res.body)).toBe(true)
         expect(res.body).toHaveLength(0)
+        expect(db.game.getLeaderboard).toHaveBeenCalled()
     })
 
-    it('returns saved games sorted by score descending', async () => {
-        await Game.create({ name: 'Alice', score: 100 })
-        await Game.create({ name: 'Bob', score: 500 })
-        await Game.create({ name: 'Carol', score: 250 })
+    it('returns games from getLeaderboard', async () => {
+        vi.mocked(db.game.getLeaderboard).mockResolvedValue([
+            { name: 'Bob', score: 500 },
+            { name: 'Carol', score: 250 },
+            { name: 'Alice', score: 100 },
+        ] as any)
 
         const res = await request(app).get('/api/game')
         expect(res.status).toBe(200)
@@ -49,18 +64,19 @@ describe('GET /api/game', () => {
         expect(res.body[2].score).toBe(100)
     })
 
-    it('limits results to 20 entries', async () => {
-        const docs = Array.from({ length: 25 }, (_, i) => ({ name: `Player ${i}`, score: i * 10 }))
-        await Game.insertMany(docs)
+    it('returns 500 when getLeaderboard rejects', async () => {
+        vi.mocked(db.game.getLeaderboard).mockRejectedValue(new Error('DB error'))
 
         const res = await request(app).get('/api/game')
-        expect(res.status).toBe(200)
-        expect(res.body.length).toBeLessThanOrEqual(20)
+        expect(res.status).toBe(500)
+        expect(res.body).toHaveProperty('error')
     })
 })
 
 describe('POST /api/game', () => {
     it('saves a new score and returns rank', async () => {
+        vi.mocked(db.game.saveScore).mockResolvedValue({ rank: 1 })
+
         const res = await request(app)
             .post('/api/game')
             .send({ name: 'Alice', score: 1000 })
@@ -68,19 +84,19 @@ describe('POST /api/game', () => {
         expect(res.status).toBe(200)
         expect(res.body).toHaveProperty('rank', 1)
         expect(res.body).toHaveProperty('message')
+        expect(db.game.saveScore).toHaveBeenCalledWith('Alice', 1000)
     })
 
-    it('calculates rank correctly when other scores exist', async () => {
-        await Game.create({ name: 'Top', score: 9000 })
-        await Game.create({ name: 'Mid', score: 5000 })
+    it('returns the rank from saveScore', async () => {
+        vi.mocked(db.game.saveScore).mockResolvedValue({ rank: 3 })
 
         const res = await request(app)
             .post('/api/game')
             .send({ name: 'New', score: 3000 })
 
         expect(res.status).toBe(200)
-        // Two scores are higher (9000 and 5000), so rank = 3
         expect(res.body.rank).toBe(3)
+        expect(db.game.saveScore).toHaveBeenCalledWith('New', 3000)
     })
 })
 
