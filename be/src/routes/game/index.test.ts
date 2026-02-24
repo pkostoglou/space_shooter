@@ -106,7 +106,7 @@ describe('POST /api/game/single', () => {
         expect(res.status).toBe(200)
         expect(res.body.message).toBe('Game created successfully')
 
-        const cookies = res.headers['set-cookie'] as string[]
+        const cookies = res.headers['set-cookie'] as string[] | string
         expect(cookies).toBeDefined()
         const cookieStr = Array.isArray(cookies) ? cookies.join('; ') : cookies
         expect(cookieStr).toContain('userID')
@@ -124,7 +124,7 @@ describe('POST /api/game/double', () => {
         expect(res.status).toBe(200)
         expect(res.body.message).toBe('Game created successfully')
 
-        const cookies = res.headers['set-cookie'] as string[]
+        const cookies = res.headers['set-cookie'] as string[] | string
         expect(cookies).toBeDefined()
         const cookieStr = Array.isArray(cookies) ? cookies.join('; ') : cookies
         expect(cookieStr).toContain('userID')
@@ -146,7 +146,7 @@ describe('POST /api/game/join', () => {
         expect(res.status).toBe(200)
         expect(res.body.message).toBe('Game created successfully')
 
-        const cookies = res.headers['set-cookie'] as string[]
+        const cookies = res.headers['set-cookie'] as string[] | string
         const cookieStr = Array.isArray(cookies) ? cookies.join('; ') : cookies
         expect(cookieStr).toContain('userID')
         expect(cookieStr).toContain('gameID')
