@@ -18,6 +18,7 @@ function renderModal(overrides?: {
         score: 1500,
         onSave: vi.fn().mockResolvedValue(null),
         onRestart: vi.fn(),
+        restartState:"none" as "none" | "waiting" | "requested",
         ...overrides,
     }
     return { ...render(<ScoreModal {...props} />), props }

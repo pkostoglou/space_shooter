@@ -29,6 +29,7 @@ export default function Game({
   const wsRef = useRef<WebSocket>(null)
   const [score, setScore] = useState(0)
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false)
+  const [restartState, setRestartState] = useState<'none' | 'waiting' | 'requested'>('none')
   const [playerRotation, setPlayerRotation] = useState(-1*Math.PI)
   const [secondPlayerRotation, setSecondPlayerRotation] = useState(-1*Math.PI)
 
@@ -98,6 +99,16 @@ export default function Game({
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+
+      if (data.type === 'restart_waiting') {
+        setRestartState('waiting')
+        return
+      }
+      if (data.type === 'restart_requested') {
+        setRestartState('requested')
+        return
+      }
+
       if (!mainPlayerRef.current) return
       if (data.player) {
         mainPlayerRef.current?.position.set(data.player[0].position.x, data.player[0].position.y)
@@ -127,11 +138,15 @@ export default function Game({
         })
         setMeteors(newMeteors)
       }
-      if (data.score) {
+      if (data.score !== undefined) {
         setScore(data.score)
       }
-      if (data.isGameOver == true) {
+      if (data.isGameOver === true) {
         setIsScoreModalOpen(true)
+      }
+      if (data.isGameOver === false) {
+        setIsScoreModalOpen(false)
+        setRestartState('none')
       }
     };
 
@@ -213,8 +228,12 @@ export default function Game({
       <ScoreModal
         isOpen={isScoreModalOpen}
         score={score}
+        restartState={restartState}
         onSave={async(name: string) =>{ return await addScore(score, name)}}
-        onRestart={() => { wsRef.current?.send(JSON.stringify({ type: "restart" })); setIsScoreModalOpen(false); setScore(0) }}
+        onRestart={() => {
+          wsRef.current?.send(JSON.stringify({ type: "restart" }));
+          if (mode === 'single') { setIsScoreModalOpen(false); setScore(0) }
+        }}
       />
     </>
   );

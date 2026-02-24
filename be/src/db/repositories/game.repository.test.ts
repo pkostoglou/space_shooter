@@ -10,8 +10,8 @@ describe('GameRepository: saveScore', () => {
 
         const docs = await Game.find()
         expect(docs).toHaveLength(1)
-        expect(docs[0].name).toBe('Alice')
-        expect(docs[0].score).toBe(500)
+        expect(docs[0]!.name).toBe('Alice')
+        expect(docs[0]!.score).toBe(500)
     })
 
     it('returns rank 1 for the first score', async () => {
@@ -47,9 +47,9 @@ describe('GameRepository: getLeaderboard', () => {
         await Game.create({ name: 'Carol', score: 250 })
 
         const games = await repo.getLeaderboard()
-        expect(games[0].score).toBe(500)
-        expect(games[1].score).toBe(250)
-        expect(games[2].score).toBe(100)
+        expect(games[0]!.score).toBe(500)
+        expect(games[1]!.score).toBe(250)
+        expect(games[2]!.score).toBe(100)
     })
 
     it('limits results to 20 entries', async () => {

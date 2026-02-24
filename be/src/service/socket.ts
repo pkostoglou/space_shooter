@@ -17,7 +17,7 @@ const initializeGameStatesManager = (
         const playerID = cookies.userID as UUID
         const slot = registry.getSlot(gameID)
         if (!slot) return
-        slot.connections.push(ws)
+        slot.connections.set(playerID, ws)
         registry.startLoop(gameID)
 
         let lastTime = Date.now()

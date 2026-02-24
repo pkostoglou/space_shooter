@@ -6,11 +6,13 @@ import Modal from './basics/Modal';
 const ScoreModal = ({
   isOpen,
   score,
+  restartState,
   onSave,
   onRestart
 }: {
   isOpen: boolean;
   score: number;
+  restartState: 'none' | 'waiting' | 'requested';
   onSave: (name: string) => Promise<number | null>;
   onRestart: () => void;
 }) => {
@@ -81,12 +83,28 @@ const ScoreModal = ({
             </button>
           </form>
 
-          <button
-            onClick={() => { onRestart(); setScoreRank(null); setUserIsAbleToSave(true) }}
-            className="w-full p-3 text-base font-bold text-[#333] bg-gray-100 border-2 border-gray-300 rounded-lg cursor-pointer transition-colors duration-200 mb-3 hover:bg-gray-200"
-          >
-            Restart Game
-          </button>
+          {restartState === 'waiting' ? (
+            <button
+              disabled
+              className="w-full p-3 text-base font-bold text-gray-500 bg-gray-100 border-2 border-gray-300 rounded-lg cursor-not-allowed mb-3"
+            >
+              Waiting for the other player...
+            </button>
+          ) : (
+            <>
+              {restartState === 'requested' && (
+                <p className="text-sm text-[#1099bb] text-center mb-2 font-bold">
+                  The other player wants to play again!
+                </p>
+              )}
+              <button
+                onClick={() => { onRestart(); setScoreRank(null); setUserIsAbleToSave(true) }}
+                className="w-full p-3 text-base font-bold text-[#333] bg-gray-100 border-2 border-gray-300 rounded-lg cursor-pointer transition-colors duration-200 mb-3 hover:bg-gray-200"
+              >
+                Restart Game
+              </button>
+            </>
+          )}
           <button
             onClick={() => getToLeaderboards()}
             className="w-full p-3 text-base font-bold text-[#333] bg-gray-100 border-2 border-gray-300 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-200"

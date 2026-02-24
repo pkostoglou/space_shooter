@@ -7,10 +7,11 @@ import type { TGameManager } from "../domains/gameTypes.js"
 type GameSlot = {
     gameState: GameState
     mode: 'single' | 'double'
-    connections: WebSocket[]
+    connections: Map<UUID, WebSocket>
     players: UUID[]
     updateInterval: NodeJS.Timeout | null
     gameName: string
+    restartRequests: Set<UUID>
 }
 
 class GameRegistry implements TGameManager {
@@ -20,11 +21,12 @@ class GameRegistry implements TGameManager {
         const id: UUID = randomUUID()
         this.slots[id] = {
             gameState: new GameState(playerID, 'single'),
-            connections: [],
+            connections: new Map(),
             mode: 'single',
             players: [playerID],
             updateInterval: null,
-            gameName: id
+            gameName: id,
+            restartRequests: new Set()
         }
         return id
     }
@@ -33,11 +35,12 @@ class GameRegistry implements TGameManager {
         const id: UUID = randomUUID()
         this.slots[id] = {
             gameState: new GameState(playerID, 'double'),
-            connections: [],
+            connections: new Map(),
             mode: 'double',
             players: [playerID],
             updateInterval: null,
-            gameName
+            gameName,
+            restartRequests: new Set()
         }
         return id
     }
@@ -74,8 +77,32 @@ class GameRegistry implements TGameManager {
     public restartGame(playerID: UUID, gameID: UUID): void {
         const slot = this.slots[gameID]
         if (!slot) return
+        if (!slot.players[0]) return
+
+        if (slot.mode === 'single') {
+            if (slot.updateInterval) clearInterval(slot.updateInterval)
+            slot.gameState = new GameState(slot.players[0], slot.mode)
+            slot.updateInterval = null
+            this._startLoop(gameID)
+            return
+        }
+
+        slot.restartRequests.add(playerID)
+
+        if (slot.restartRequests.size < 2) {
+            slot.connections.get(playerID)?.send(JSON.stringify({ type: "restart_waiting" }))
+            slot.connections.forEach((ws, pid) => {
+                if (pid !== playerID) {
+                    ws.send(JSON.stringify({ type: "restart_requested" }))
+                }
+            })
+            return
+        }
+
+        slot.restartRequests.clear()
         if (slot.updateInterval) clearInterval(slot.updateInterval)
-        slot.gameState = new GameState(playerID, slot.mode)
+        slot.gameState = new GameState(slot.players[0], slot.mode)
+        if (slot.players[1]) slot.gameState.addPlayer(slot.players[1])
         slot.updateInterval = null
         this._startLoop(gameID)
     }
