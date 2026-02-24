@@ -1,4 +1,6 @@
 import type { Position, Size } from "../../domains/gameTypes.js";
+import { checkShapeCollision } from "./helpers/CollisionShapes.js"
+import type { CollisionShape } from "./helpers/CollisionShapes.js"
 
 class Element {
     protected currentPosition: Position
@@ -24,29 +26,20 @@ class Element {
         return this.size
     }
 
+    public getCollisionShape(): CollisionShape {
+        return {
+            type: 'rectangle',
+            position: this.currentPosition,
+            size: this.size,
+            angle: 0
+        }
+    }
+
     public detectCollisionWithElement<T extends Element>(otherElement: T): boolean {
-
-        const otherElementPosition = otherElement.getPosition()
-        const otherElementSize = otherElement.getSize()
-
-        return (
-            (
-                this.currentPosition.x >= otherElementPosition.x - 40 && this.currentPosition.x <= otherElementPosition.x + 40
-            ) &&
-            (
-                this.currentPosition.y >= otherElementPosition.y - 40 && this.currentPosition.y <= otherElementPosition.y + 40
-            )
+        return checkShapeCollision(
+            this.getCollisionShape(),
+            otherElement.getCollisionShape()
         )
-        // return (
-        //     (
-        //         (this.currentPosition.x + this.size.width/2 >= otherElementPosition.x - otherElementSize.width/2 && this.currentPosition.x + this.size.width/2 <= otherElementPosition.x + otherElementSize.width/2) ||
-        //         (this.currentPosition.x - this.size.width/2 >= otherElementPosition.x - otherElementSize.width/2 && this.currentPosition.x - this.size.width/2 <= otherElementPosition.x + otherElementSize.width/2)
-        //     ) &&
-        //     (
-        //         (this.currentPosition.y + this.size.height/2 >= otherElementPosition.y - otherElementSize.height/2 && this.currentPosition.y + this.size.height/2 <= otherElementPosition.y + otherElementSize.height/2) ||
-        //         (this.currentPosition.y - this.size.height/2 >= otherElementPosition.y - otherElementSize.height/2 && this.currentPosition.y - this.size.height/2 <= otherElementPosition.y + otherElementSize.height/2)
-        //     )
-        // )
     }
 }
 

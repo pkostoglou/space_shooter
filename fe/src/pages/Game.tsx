@@ -112,7 +112,7 @@ export default function Game({
           return {
             position: projectile.currentPosition,
             size: projectile.size,
-            angle: projectile.direction > 0 ? projectile.angle + Math.PI / 2 : projectile.angle + Math.PI / 2 + Math.PI
+            angle: projectile.direction > 0 ? projectile.angle : projectile.angle + Math.PI
           }
         })
         setProjectiles(newProjectiles)

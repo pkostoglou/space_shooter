@@ -39,6 +39,8 @@ const Player = ({
       texture={texture}
       anchor={0.5}
       rotation={angle}
+      width={40}
+      height={60}
     />
   );
 };

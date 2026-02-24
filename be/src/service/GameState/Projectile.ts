@@ -5,7 +5,7 @@ class Projectile extends PassiveElement {
     private sourceId: number
 
     constructor(sourceId: number, initialPosition: Position, targetPosition: Position) {
-        super(initialPosition, targetPosition, {width:50, height:20})
+        super(initialPosition, targetPosition, {width:40, height:25})
         this.sourceId = sourceId
     }
 }

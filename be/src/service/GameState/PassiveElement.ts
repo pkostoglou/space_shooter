@@ -1,4 +1,5 @@
 import type { Position, Size } from "../../domains/gameTypes.js";
+import type { CollisionShape } from "./helpers/CollisionShapes.js";
 import Element from "./Element.js";
 
 class PassiveElement extends Element {
@@ -29,6 +30,15 @@ class PassiveElement extends Element {
         }
 
         this.speed = 4
+    }
+
+    public getCollisionShape(): CollisionShape {
+        return {
+            type: 'rectangle',
+            position: this.currentPosition,
+            size: this.size,
+            angle: this.angle
+        }
     }
 
     public passiveMovement(deltaTime: number) {

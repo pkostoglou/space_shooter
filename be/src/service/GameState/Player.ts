@@ -1,4 +1,5 @@
 import type { Position } from "../../domains/gameTypes.js"
+import type { CollisionShape } from "./helpers/CollisionShapes.js"
 import Element from "./Element.js"
 
 const PLAYER_FIRERATE_BASELINE = 0.5
@@ -11,7 +12,7 @@ class Player extends Element {
     private fireRate: number
 
     constructor(initialPosition: Position) {
-        super(initialPosition, { width: 40, height: 100 })
+        super(initialPosition, { width: 40, height: 60 })
         this.playerId = 1
         this.speed = 2
         this.fireRate = PLAYER_FIRERATE_BASELINE
@@ -39,6 +40,15 @@ class Player extends Element {
             } else {
                 this.angle = 3 * Math.PI / 4 * movement.horizontal
             }
+        }
+    }
+
+    public getCollisionShape(): CollisionShape {
+        return {
+            type: 'rectangle',
+            position: this.currentPosition,
+            size: this.size,
+            angle: this.angle
         }
     }
 

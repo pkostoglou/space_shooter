@@ -1,5 +1,6 @@
 import PassiveElement from "./PassiveElement.js";
 import type { Position } from "../../domains/gameTypes.js";
+import type { CollisionShape } from "./helpers/CollisionShapes.js";
 
 class Meteor extends PassiveElement{
     private objectAngle:number
@@ -8,6 +9,15 @@ class Meteor extends PassiveElement{
         super(initialPosition, targetPosition, {width: 100, height:100})
         this.speed = speed
         this.objectAngle = 45
+    }
+
+    public getCollisionShape(): CollisionShape {
+        return {
+            type: 'rectangle',
+            position: this.currentPosition,
+            size: this.size,
+            angle: this.objectAngle * Math.PI / 180
+        }
     }
 
     public passiveMovement(deltaTime: number): void {

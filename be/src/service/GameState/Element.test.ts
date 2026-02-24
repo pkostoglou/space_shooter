@@ -35,7 +35,7 @@ describe('Element', () => {
     })
 
     describe('detectCollisionWithElement()', () => {
-        it('detects a collision when elements are within 40px in both axes', () => {
+        it('detects collision when rectangles overlap', () => {
             const el1 = new Element({ x: 100, y: 100 }, { width: 40, height: 40 })
             const el2 = new Element({ x: 120, y: 120 }, { width: 40, height: 40 })
             expect(el1.detectCollisionWithElement(el2)).toBe(true)
@@ -53,16 +53,38 @@ describe('Element', () => {
             expect(el1.detectCollisionWithElement(el2)).toBe(false)
         })
 
-        it('detects collision at exact 40px distance on both axes', () => {
+        it('returns false when edges exactly touch (no overlap)', () => {
             const el1 = new Element({ x: 100, y: 100 }, { width: 40, height: 40 })
-            const el2 = new Element({ x: 140, y: 140 }, { width: 40, height: 40 })
-            expect(el1.detectCollisionWithElement(el2)).toBe(true)
+            const el2 = new Element({ x: 140, y: 100 }, { width: 40, height: 40 })
+            expect(el1.detectCollisionWithElement(el2)).toBe(false)
         })
 
-        it('returns false at 41px distance on x axis', () => {
+        it('returns false when just beyond overlap distance', () => {
             const el1 = new Element({ x: 100, y: 100 }, { width: 40, height: 40 })
             const el2 = new Element({ x: 141, y: 100 }, { width: 40, height: 40 })
             expect(el1.detectCollisionWithElement(el2)).toBe(false)
+        })
+
+        it('detects collision between different-sized elements', () => {
+            // Meteor 100x100 at (200,200), Projectile 50x20 at (260,200)
+            // x: 200+50=250 > 260-25=235 and 260+25=285 > 200-50=150 => overlap
+            // y: 200+50=250 > 200-10=190 and 200+10=210 > 200-50=150 => overlap
+            const meteor = new Element({ x: 200, y: 200 }, { width: 100, height: 100 })
+            const projectile = new Element({ x: 260, y: 200 }, { width: 50, height: 20 })
+            expect(meteor.detectCollisionWithElement(projectile)).toBe(true)
+        })
+
+        it('returns false for different-sized elements that do not overlap', () => {
+            const meteor = new Element({ x: 200, y: 200 }, { width: 100, height: 100 })
+            const projectile = new Element({ x: 400, y: 200 }, { width: 50, height: 20 })
+            expect(meteor.detectCollisionWithElement(projectile)).toBe(false)
+        })
+
+        it('is symmetric: a.collides(b) equals b.collides(a)', () => {
+            const el1 = new Element({ x: 100, y: 100 }, { width: 60, height: 40 })
+            const el2 = new Element({ x: 130, y: 110 }, { width: 40, height: 60 })
+            expect(el1.detectCollisionWithElement(el2)).toBe(true)
+            expect(el2.detectCollisionWithElement(el1)).toBe(true)
         })
     })
 })

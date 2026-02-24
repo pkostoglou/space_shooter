@@ -27,7 +27,7 @@ const Meteor = ({
   // Preload the sprite if it hasn't been loaded yet
   useEffect(() => {
     if (texture === Texture.EMPTY) {
-      Assets.load("/assets/bunny.png").then((result) => {
+      Assets.load("/assets/meteor.png").then((result) => {
         setTexture(result);
       });
     }
