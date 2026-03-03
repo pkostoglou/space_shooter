@@ -7,12 +7,20 @@ const ScoreModal = ({
   isOpen,
   score,
   restartState,
+  mode,
+  teamName,
+  savedRank,
+  onTeamNameChange,
   onSave,
   onRestart
 }: {
   isOpen: boolean;
   score: number;
   restartState: 'none' | 'waiting' | 'requested';
+  mode: 'single' | 'double';
+  teamName: string;
+  savedRank: number | null;
+  onTeamNameChange: (name: string) => void;
   onSave: (name: string) => Promise<number | null>;
   onRestart: () => void;
 }) => {
@@ -22,11 +30,15 @@ const ScoreModal = ({
   const [userIsAbleToSave, setUserIsAbleToSave] = useState(true)
   const [scoreRank, setScoreRank] = useState<number | null>(null)
 
+  const currentName = mode === 'double' ? teamName : playerName
+  const isAlreadySaved = !userIsAbleToSave || (mode === 'double' && savedRank !== null)
+  const displayRank = scoreRank ?? savedRank
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userIsAbleToSave) return
-    if (playerName.trim()) {
-      const rank = await onSave(playerName.trim());
+    if (isAlreadySaved) return
+    if (currentName.trim()) {
+      const rank = await onSave(currentName.trim());
       setScoreRank(rank)
       setUserIsAbleToSave(false)
     }
@@ -34,9 +46,8 @@ const ScoreModal = ({
 
   const fetchScores = async () => {
     try {
-      const scores = await getScores()
+      const scores = await getScores(mode)
       setLeaderboard(scores)
-      console.log(scores)
     } catch (e) {
       console.log(e)
     }
@@ -56,30 +67,37 @@ const ScoreModal = ({
           </h2>
 
           <p className="mb-6 text-base text-gray-500 text-center">
-            Your score: <strong className="text-[#1099bb] text-xl">{score}</strong> {scoreRank && <>Your rank <strong className="text-[#1099bb] text-xl">#{scoreRank}</strong></>}
+            Your score: <strong className="text-[#1099bb] text-xl">{score}</strong> {displayRank && <>Your rank <strong className="text-[#1099bb] text-xl">#{displayRank}</strong></>}
           </p>
 
           <form onSubmit={handleSubmit}>
             <input
               type="text"
-              placeholder="Enter your name"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder={mode === 'double' ? "Enter your team name" : "Enter your name"}
+              value={currentName}
+              onChange={(e) => {
+                if (mode === 'double') {
+                  onTeamNameChange(e.target.value)
+                } else {
+                  setPlayerName(e.target.value)
+                }
+              }}
               maxLength={20}
-              className="w-full p-3 text-base border-2 border-gray-300 rounded-lg mb-4 outline-none transition-colors focus:border-[#1099bb] text-black"
+              disabled={isAlreadySaved}
+              className="w-full p-3 text-base border-2 border-gray-300 rounded-lg mb-4 outline-none transition-colors focus:border-[#1099bb] text-black disabled:bg-gray-100 disabled:text-gray-500"
               autoFocus
             />
 
             <button
               type="submit"
-              disabled={!playerName.trim() || !userIsAbleToSave}
+              disabled={!currentName.trim() || isAlreadySaved}
               className={`w-full p-3 text-base font-bold text-white border-none rounded-lg mb-3 transition-colors duration-200 ${
-                playerName.trim()
+                currentName.trim() && !isAlreadySaved
                   ? "bg-[#1099bb] cursor-pointer hover:bg-[#0d7a9a]"
                   : "bg-gray-300 cursor-not-allowed"
               }`}
             >
-              {userIsAbleToSave ? "Save Score" : "Score Saved!"}
+              {isAlreadySaved ? "Score Saved!" : "Save Score"}
             </button>
           </form>
 
@@ -98,7 +116,7 @@ const ScoreModal = ({
                 </p>
               )}
               <button
-                onClick={() => { onRestart(); setScoreRank(null); setUserIsAbleToSave(true) }}
+                onClick={() => { onRestart(); setScoreRank(null); setUserIsAbleToSave(true); setPlayerName('') }}
                 className="w-full p-3 text-base font-bold text-[#333] bg-gray-100 border-2 border-gray-300 rounded-lg cursor-pointer transition-colors duration-200 mb-3 hover:bg-gray-200"
               >
                 Restart Game

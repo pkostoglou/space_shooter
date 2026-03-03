@@ -10,15 +10,23 @@ vi.mock('../apis', () => ({
 function renderModal(overrides?: {
     isOpen?: boolean
     score?: number
+    mode?: 'single' | 'double'
+    teamName?: string
+    savedRank?: number | null
+    onTeamNameChange?: (name: string) => void
     onSave?: (name: string) => Promise<number | null>
     onRestart?: () => void
 }) {
     const props = {
         isOpen: true,
         score: 1500,
+        mode: 'single' as 'single' | 'double',
+        teamName: '',
+        savedRank: null as number | null,
+        onTeamNameChange: vi.fn(),
         onSave: vi.fn().mockResolvedValue(null),
         onRestart: vi.fn(),
-        restartState:"none" as "none" | "waiting" | "requested",
+        restartState: "none" as "none" | "waiting" | "requested",
         ...overrides,
     }
     return { ...render(<ScoreModal {...props} />), props }
@@ -110,5 +118,40 @@ describe('ScoreModal — back button', () => {
         const backBtn = screen.getByRole('button', { name: /←/ })
         await user.click(backBtn)
         expect(screen.getByText('Game Over!')).toBeInTheDocument()
+    })
+})
+
+describe('ScoreModal — doubles mode', () => {
+    it('shows "Enter your team name" placeholder in double mode', () => {
+        renderModal({ mode: 'double' })
+        expect(screen.getByPlaceholderText('Enter your team name')).toBeInTheDocument()
+    })
+
+    it('calls onTeamNameChange when typing in double mode', async () => {
+        const onTeamNameChange = vi.fn()
+        const user = userEvent.setup()
+        renderModal({ mode: 'double', onTeamNameChange })
+        await user.type(screen.getByPlaceholderText('Enter your team name'), 'A')
+        expect(onTeamNameChange).toHaveBeenCalledWith('A')
+    })
+
+    it('uses teamName prop as input value in double mode', () => {
+        renderModal({ mode: 'double', teamName: 'Cool Team' })
+        expect(screen.getByPlaceholderText('Enter your team name')).toHaveValue('Cool Team')
+    })
+
+    it('disables save when other player already saved (savedRank set)', () => {
+        renderModal({ mode: 'double', teamName: 'Team', savedRank: 3 })
+        expect(screen.getByRole('button', { name: /score saved/i })).toBeDisabled()
+    })
+
+    it('shows the rank from savedRank when other player saved', () => {
+        renderModal({ mode: 'double', teamName: 'Team', savedRank: 7 })
+        expect(screen.getByText('#7')).toBeInTheDocument()
+    })
+
+    it('disables the name input when score is already saved by teammate', () => {
+        renderModal({ mode: 'double', teamName: 'Team', savedRank: 2 })
+        expect(screen.getByPlaceholderText('Enter your team name')).toBeDisabled()
     })
 })

@@ -32,6 +32,16 @@ const initializeGameStatesManager = (
                 return
             }
 
+            if (m.type === 'team_name') {
+                registry.setTeamName(gameID, playerID, m.name)
+                return
+            }
+
+            if (m.type === 'score_saved') {
+                registry.broadcastScoreSaved(gameID, playerID, m.rank)
+                return
+            }
+
             const gs = registry.getSlot(gameID)?.gameState
             if (!gs) return
 

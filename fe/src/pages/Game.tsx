@@ -30,6 +30,8 @@ export default function Game({
   const [score, setScore] = useState(0)
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false)
   const [restartState, setRestartState] = useState<'none' | 'waiting' | 'requested'>('none')
+  const [teamName, setTeamName] = useState('')
+  const [savedRank, setSavedRank] = useState<number | null>(null)
   const [playerRotation, setPlayerRotation] = useState(-1*Math.PI)
   const [secondPlayerRotation, setSecondPlayerRotation] = useState(-1*Math.PI)
 
@@ -108,6 +110,14 @@ export default function Game({
         setRestartState('requested')
         return
       }
+      if (data.type === 'team_name') {
+        setTeamName(data.name)
+        return
+      }
+      if (data.type === 'score_saved') {
+        setSavedRank(data.rank)
+        return
+      }
 
       if (!mainPlayerRef.current) return
       if (data.player) {
@@ -151,7 +161,7 @@ export default function Game({
     };
 
     wsRef.current = ws
-    getScores()
+    getScores(mode)
     return () => {
       window.removeEventListener("mousedown", userMouseDown)
       window.removeEventListener("mouseup", userMouseUp)
@@ -229,10 +239,24 @@ export default function Game({
         isOpen={isScoreModalOpen}
         score={score}
         restartState={restartState}
-        onSave={async(name: string) =>{ return await addScore(score, name)}}
+        mode={mode}
+        teamName={teamName}
+        savedRank={savedRank}
+        onTeamNameChange={(name: string) => {
+          setTeamName(name)
+          wsRef.current?.send(JSON.stringify({ type: 'team_name', name }))
+        }}
+        onSave={async(name: string) => {
+          const rank = await addScore(score, name, mode)
+          if (mode === 'double' && rank) {
+            wsRef.current?.send(JSON.stringify({ type: 'score_saved', rank }))
+          }
+          return rank
+        }}
         onRestart={() => {
           wsRef.current?.send(JSON.stringify({ type: "restart" }));
           if (mode === 'single') { setIsScoreModalOpen(false); setScore(0) }
+          setSavedRank(null)
         }}
       />
     </>

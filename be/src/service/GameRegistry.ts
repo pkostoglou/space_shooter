@@ -11,6 +11,7 @@ type GameSlot = {
     players: UUID[]
     updateInterval: NodeJS.Timeout | null
     gameName: string
+    teamName: string
     restartRequests: Set<UUID>
 }
 
@@ -26,6 +27,7 @@ class GameRegistry implements TGameManager {
             players: [playerID],
             updateInterval: null,
             gameName: id,
+            teamName: '',
             restartRequests: new Set()
         }
         return id
@@ -40,6 +42,7 @@ class GameRegistry implements TGameManager {
             players: [playerID],
             updateInterval: null,
             gameName,
+            teamName: '',
             restartRequests: new Set()
         }
         return id
@@ -105,6 +108,27 @@ class GameRegistry implements TGameManager {
         if (slot.players[1]) slot.gameState.addPlayer(slot.players[1])
         slot.updateInterval = null
         this._startLoop(gameID)
+    }
+
+    public broadcastScoreSaved(gameID: UUID, playerID: UUID, rank: number): void {
+        const slot = this.slots[gameID]
+        if (!slot || slot.mode !== 'double') return
+        slot.connections.forEach((ws, pid) => {
+            if (pid !== playerID) {
+                ws.send(JSON.stringify({ type: 'score_saved', rank }))
+            }
+        })
+    }
+
+    public setTeamName(gameID: UUID, playerID: UUID, name: string): void {
+        const slot = this.slots[gameID]
+        if (!slot || slot.mode !== 'double') return
+        slot.teamName = name
+        slot.connections.forEach((ws, pid) => {
+            if (pid !== playerID) {
+                ws.send(JSON.stringify({ type: 'team_name', name }))
+            }
+        })
     }
 
     public clearSlot(gameID: UUID): void {

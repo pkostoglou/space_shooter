@@ -40,63 +40,92 @@ beforeEach(() => {
 })
 
 describe('GET /api/game', () => {
+    it('returns 400 when gameType is missing', async () => {
+        const res = await request(app).get('/api/game')
+        expect(res.status).toBe(400)
+        expect(res.body).toHaveProperty('error')
+    })
+
+    it('returns 400 when gameType is invalid', async () => {
+        const res = await request(app).get('/api/game?gameType=invalid')
+        expect(res.status).toBe(400)
+        expect(res.body).toHaveProperty('error')
+    })
+
     it('returns an empty array when no scores are saved', async () => {
         vi.mocked(db.game.getLeaderboard).mockResolvedValue([])
 
-        const res = await request(app).get('/api/game')
+        const res = await request(app).get('/api/game?gameType=single')
         expect(res.status).toBe(200)
         expect(Array.isArray(res.body)).toBe(true)
         expect(res.body).toHaveLength(0)
-        expect(db.game.getLeaderboard).toHaveBeenCalled()
+        expect(db.game.getLeaderboard).toHaveBeenCalledWith('single')
     })
 
-    it('returns games from getLeaderboard', async () => {
+    it('returns games from getLeaderboard filtered by gameType', async () => {
         vi.mocked(db.game.getLeaderboard).mockResolvedValue([
             { name: 'Bob', score: 500 },
             { name: 'Carol', score: 250 },
             { name: 'Alice', score: 100 },
         ] as any)
 
-        const res = await request(app).get('/api/game')
+        const res = await request(app).get('/api/game?gameType=double')
         expect(res.status).toBe(200)
         expect(res.body[0].score).toBe(500)
-        expect(res.body[1].score).toBe(250)
-        expect(res.body[2].score).toBe(100)
+        expect(db.game.getLeaderboard).toHaveBeenCalledWith('double')
     })
 
     it('returns 500 when getLeaderboard rejects', async () => {
         vi.mocked(db.game.getLeaderboard).mockRejectedValue(new Error('DB error'))
 
-        const res = await request(app).get('/api/game')
+        const res = await request(app).get('/api/game?gameType=single')
         expect(res.status).toBe(500)
         expect(res.body).toHaveProperty('error')
     })
 })
 
 describe('POST /api/game', () => {
+    it('returns 400 when gameType is missing', async () => {
+        const res = await request(app)
+            .post('/api/game')
+            .send({ name: 'Alice', score: 1000 })
+
+        expect(res.status).toBe(400)
+        expect(res.body).toHaveProperty('error')
+    })
+
+    it('returns 400 when gameType is invalid', async () => {
+        const res = await request(app)
+            .post('/api/game')
+            .send({ name: 'Alice', score: 1000, gameType: 'triple' })
+
+        expect(res.status).toBe(400)
+        expect(res.body).toHaveProperty('error')
+    })
+
     it('saves a new score and returns rank', async () => {
         vi.mocked(db.game.saveScore).mockResolvedValue({ rank: 1 })
 
         const res = await request(app)
             .post('/api/game')
-            .send({ name: 'Alice', score: 1000 })
+            .send({ name: 'Alice', score: 1000, gameType: 'single' })
 
         expect(res.status).toBe(200)
         expect(res.body).toHaveProperty('rank', 1)
         expect(res.body).toHaveProperty('message')
-        expect(db.game.saveScore).toHaveBeenCalledWith('Alice', 1000)
+        expect(db.game.saveScore).toHaveBeenCalledWith('Alice', 1000, 'single')
     })
 
-    it('returns the rank from saveScore', async () => {
+    it('returns the rank from saveScore for double games', async () => {
         vi.mocked(db.game.saveScore).mockResolvedValue({ rank: 3 })
 
         const res = await request(app)
             .post('/api/game')
-            .send({ name: 'New', score: 3000 })
+            .send({ name: 'TeamA', score: 3000, gameType: 'double' })
 
         expect(res.status).toBe(200)
         expect(res.body.rank).toBe(3)
-        expect(db.game.saveScore).toHaveBeenCalledWith('New', 3000)
+        expect(db.game.saveScore).toHaveBeenCalledWith('TeamA', 3000, 'double')
     })
 })
 

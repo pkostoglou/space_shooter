@@ -1,8 +1,8 @@
 const baseUrl = import.meta.env.VITE_BASE_URL
 
-const getScores = async () => {
+const getScores = async (gameType: 'single' | 'double') => {
     try {
-        const response = await fetch(`${baseUrl}/game`)
+        const response = await fetch(`${baseUrl}/game?gameType=${gameType}`)
         if (!response.ok) throw new Error("Err")
         const scores = await response.json()
         return scores
@@ -11,7 +11,7 @@ const getScores = async () => {
     }
 }
 
-const addScore = async (score: number, name: string) => {
+const addScore = async (score: number, name: string, gameType: 'single' | 'double') => {
     try {
         const response = await fetch(`${baseUrl}/game`, {
             method: "POST",
@@ -19,7 +19,7 @@ const addScore = async (score: number, name: string) => {
                 "Content-Type": "application/json"
             },
             credentials: 'include',
-            body: JSON.stringify({ score, name })
+            body: JSON.stringify({ score, name, gameType })
         }
         )
         if (!response.ok) throw new Error("Err")

@@ -11,6 +11,11 @@ const GameSchema = new Schema<IGame>({
         type: Number,
         default: 0
     },
+    gameType: {
+        type: String,
+        enum: ['single', 'double'],
+        required: true
+    },
     createdAt: {
         type: Date,
         default: Date.now

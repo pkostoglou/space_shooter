@@ -21,26 +21,33 @@ describe('getScores', () => {
     it('returns parsed scores on success', async () => {
         const scores = [{ name: 'Alice', score: 100 }]
         vi.stubGlobal('fetch', mockFetch(scores))
-        const result = await getScores()
+        const result = await getScores('single')
         expect(result).toEqual(scores)
     })
 
-    it('calls the correct URL', async () => {
+    it('calls the correct URL with gameType query param', async () => {
         const fetchMock = mockFetch([])
         vi.stubGlobal('fetch', fetchMock)
-        await getScores()
-        expect(fetchMock).toHaveBeenCalledWith(`${BASE}/game`)
+        await getScores('single')
+        expect(fetchMock).toHaveBeenCalledWith(`${BASE}/game?gameType=single`)
+    })
+
+    it('calls with double gameType', async () => {
+        const fetchMock = mockFetch([])
+        vi.stubGlobal('fetch', fetchMock)
+        await getScores('double')
+        expect(fetchMock).toHaveBeenCalledWith(`${BASE}/game?gameType=double`)
     })
 
     it('returns undefined and swallows errors on failure', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')))
-        const result = await getScores()
+        const result = await getScores('single')
         expect(result).toBeUndefined()
     })
 
     it('returns undefined when response is not ok', async () => {
         vi.stubGlobal('fetch', mockFetch({}, false, 500))
-        const result = await getScores()
+        const result = await getScores('single')
         expect(result).toBeUndefined()
     })
 })
@@ -48,24 +55,33 @@ describe('getScores', () => {
 describe('addScore', () => {
     it('returns the rank on success', async () => {
         vi.stubGlobal('fetch', mockFetch({ rank: 3 }))
-        const result = await addScore(500, 'Bob')
+        const result = await addScore(500, 'Bob', 'single')
         expect(result).toBe(3)
     })
 
-    it('calls the correct URL with POST method and credentials', async () => {
+    it('calls the correct URL with POST method, credentials, and gameType', async () => {
         const fetchMock = mockFetch({ rank: 1 })
         vi.stubGlobal('fetch', fetchMock)
-        await addScore(200, 'Charlie')
+        await addScore(200, 'Charlie', 'single')
         expect(fetchMock).toHaveBeenCalledWith(`${BASE}/game`, expect.objectContaining({
             method: 'POST',
             credentials: 'include',
-            body: JSON.stringify({ score: 200, name: 'Charlie' }),
+            body: JSON.stringify({ score: 200, name: 'Charlie', gameType: 'single' }),
+        }))
+    })
+
+    it('includes double gameType in request body', async () => {
+        const fetchMock = mockFetch({ rank: 1 })
+        vi.stubGlobal('fetch', fetchMock)
+        await addScore(300, 'TeamA', 'double')
+        expect(fetchMock).toHaveBeenCalledWith(`${BASE}/game`, expect.objectContaining({
+            body: JSON.stringify({ score: 300, name: 'TeamA', gameType: 'double' }),
         }))
     })
 
     it('returns undefined on error', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('fail')))
-        const result = await addScore(100, 'Dave')
+        const result = await addScore(100, 'Dave', 'single')
         expect(result).toBeUndefined()
     })
 })

@@ -4,9 +4,14 @@ import type { Database } from "../../domains/db.js";
 export const createScoreRouter = (db: Database) => {
     const router = Router()
 
-    router.get('/', async (_, res) => {
+    router.get('/', async (req, res) => {
         try {
-            const games = await db.game.getLeaderboard()
+            const gameType = req.query.gameType as 'single' | 'double'
+            if (!gameType || !['single', 'double'].includes(gameType)) {
+                res.status(400).json({ error: "gameType query param required (single or double)" })
+                return
+            }
+            const games = await db.game.getLeaderboard(gameType)
             res.json(games)
         } catch (e) {
             res.status(500).json({ error: "Cant" })
@@ -14,8 +19,12 @@ export const createScoreRouter = (db: Database) => {
     })
 
     router.post('/', async (req, res) => {
-        const { name, score } = req.body
-        const { rank } = await db.game.saveScore(name, score)
+        const { name, score, gameType } = req.body
+        if (!gameType || !['single', 'double'].includes(gameType)) {
+            res.status(400).json({ error: "gameType required (single or double)" })
+            return
+        }
+        const { rank } = await db.game.saveScore(name, score, gameType)
         res.json({
             message: "Game saved succesfully!",
             rank
